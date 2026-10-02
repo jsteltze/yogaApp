@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'dart:convert';
+import 'dart:math';
 
 void main() {
   runApp(const YogaVideoApp());
@@ -176,6 +177,89 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     setState(() {
       _currentVideo = video;
     });
+  }
+
+  void _selectRandomVideo() {
+    final filtered = _filteredVideos;
+    if (filtered.isEmpty) return;
+
+    final random = Random();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            int displayIndex = random.nextInt(filtered.length);
+            final stopwatch = Stopwatch()..start();
+
+            void roll() {
+              if (stopwatch.elapsedMilliseconds < 3000) {
+                if (Navigator.canPop(dialogContext)) {
+                  setDialogState(() {
+                    displayIndex = random.nextInt(filtered.length);
+                  });
+                  Future.delayed(const Duration(milliseconds: 120), roll);
+                }
+              } else {
+                final winningVideo = filtered[random.nextInt(filtered.length)];
+                if (Navigator.canPop(dialogContext)) {
+                  Navigator.pop(dialogContext);
+                  _playVideo(winningVideo);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🎲 Selected: ${winningVideo.title}'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              }
+            }
+
+            // Kick off rolling animation
+            Future.delayed(const Duration(milliseconds: 120), roll);
+
+            final currentDisplayVideo = filtered[displayIndex];
+
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 16),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '🎲 Rolling for a random video...',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      currentDisplayVideo.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -650,11 +734,27 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showVideoDialog(),
-        tooltip: 'Add Video',
-        child: const Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 48), // balance left spacing
+            FloatingActionButton.extended(
+              onPressed: _filteredVideos.isEmpty ? null : _selectRandomVideo,
+              icon: const Icon(Icons.shuffle),
+              label: const Text('Random Video'),
+              tooltip: 'Select a random video from current filter',
+            ),
+            FloatingActionButton(
+              onPressed: () => _showVideoDialog(),
+              tooltip: 'Add Video',
+              child: const Icon(Icons.add),
+            ),
+          ],
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
