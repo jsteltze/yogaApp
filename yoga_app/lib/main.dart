@@ -491,23 +491,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     ],
                   )
                 else
-                  Container(
-                    height: 200,
-                    color: Colors.black12,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.video_library_outlined, size: 48, color: Colors.grey),
-                          SizedBox(height: 8),
-                          Text(
-                            'Select a video from the list to play',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const SizedBox.shrink(),
 
                 // Video List Header & Count
                 Padding(
