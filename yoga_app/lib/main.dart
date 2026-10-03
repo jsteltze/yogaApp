@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:async';
 
 void main() {
   runApp(const YogaVideoApp());
@@ -70,11 +72,47 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   YoutubePlayerController? _controller;
   YogaVideo? _currentVideo;
   bool _isLoading = true;
+  StreamSubscription? _textSub;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+
+    // Listen to share intents while app is open
+    _textSub = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
+      if (value.isNotEmpty) {
+        final sharedText = value.first.path;
+        if (sharedText.isNotEmpty) {
+          _handleSharedText(sharedText);
+        }
+      }
+    }, onError: (err) {
+      // handle error
+    });
+
+    // Get share intent when app is launched from closed state
+    ReceiveSharingIntent.instance.getInitialMedia().then((List<SharedMediaFile> value) {
+      if (value.isNotEmpty) {
+        final sharedText = value.first.path;
+        if (sharedText.isNotEmpty) {
+          _handleSharedText(sharedText);
+          ReceiveSharingIntent.instance.reset();
+        }
+      }
+    });
+  }
+
+  void _handleSharedText(String text) {
+    final videoId = _extractVideoId(text);
+    if (videoId != null || text.contains('youtube.com') || text.contains('youtu.be')) {
+      String urlToUse = text;
+      final uriMatch = RegExp(r'https?://[^\s]+').firstMatch(text);
+      if (uriMatch != null) {
+        urlToUse = uriMatch.group(0)!;
+      }
+      _showVideoDialog(initialUrl: urlToUse);
+    }
   }
 
   String? _extractVideoId(String url) {
@@ -265,12 +303,15 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   @override
   void dispose() {
     _controller?.close();
+    _textSub?.cancel();
     super.dispose();
   }
 
-  void _showVideoDialog({YogaVideo? video}) {
+  void _showVideoDialog({YogaVideo? video, String? initialUrl}) {
     final isEditing = video != null;
-    final urlController = TextEditingController(text: isEditing ? video.url : '');
+    final urlController = TextEditingController(
+      text: isEditing ? video.url : (initialUrl ?? ''),
+    );
     final titleController = TextEditingController(text: isEditing ? video.title : '');
     final inlineTagController = TextEditingController();
     Set<String> selectedTags = isEditing ? Set.from(video.tags) : {};
@@ -620,7 +661,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                         : BorderSide.none,
                                   ),
                                   child: ListTile(
-                                    contentPadding: const EdgeInsets.all(8),
+                                    contentPadding: const EdgeInsets.all(8), // wait, let's fix const: const
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image.network(
