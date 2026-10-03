@@ -18,7 +18,7 @@ class YogaVideoApp extends StatelessWidget {
     return MaterialApp(
       title: 'Yoga Video Manager',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       home: const YogaVideoScreen(),
@@ -519,13 +519,31 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     children: [
                       YoutubePlayer(controller: _controller!),
                       Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Text(
-                          _currentVideo!.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _currentVideo!.title,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                _controller?.close();
+                                setState(() {
+                                  _controller = null;
+                                  _currentVideo = null;
+                                });
+                              },
+                              tooltip: 'Close player',
+                            ),
+                          ],
                         ),
                       ),
                       const Divider(height: 1),
@@ -674,12 +692,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                           width: 80,
                                           height: 60,
                                           color: Colors.grey.shade300,
-                                          child: const Icon(Icons.videocam, color: Colors.grey),
+                                          child: const Icon(Icons.videocam),
                                         ),
                                       ),
                                     ),
                                     title: Text(
-                                      '${index + 1}. ${video.title}',
+                                      video.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -740,12 +758,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.edit_outlined, color: Colors.teal),
+                                          icon: const Icon(Icons.edit_outlined),
                                           onPressed: () => _showVideoDialog(video: video),
                                           tooltip: 'Edit video',
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                          icon: const Icon(Icons.delete_outline),
                                           onPressed: () => _deleteVideo(video),
                                           tooltip: 'Delete video',
                                         ),
