@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "de.jsteltze.yogaapp.yoga_app"
+    namespace = "de.jsteltze.yogaapp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "de.jsteltze.yogaapp.yoga_app"
+        applicationId = "de.jsteltze.yogaapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

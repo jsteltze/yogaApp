@@ -1,4 +1,4 @@
-package de.jsteltze.yogaapp.yoga_app;
+package de.jsteltze.yogaapp;
 
 import io.flutter.embedding.android.FlutterActivity;
 
