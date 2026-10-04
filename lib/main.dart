@@ -684,17 +684,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.playlist_add, size: 64, color: Colors.grey),
-                              const SizedBox(height: 12),
-                              const Text(
+                              Icon(Icons.playlist_add, size: 100, color: Theme.of(context).colorScheme.primary.withAlpha(100)),
+                              Text(
                                 'No YouTube videos added yet.',
-                                style: TextStyle(fontSize: 16, color: Colors.grey),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                onPressed: () => _showVideoDialog(),
-                                icon: const Icon(Icons.add),
-                                label: const Text('Add Video Link'),
+                                style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                               ),
                             ],
                           ),
@@ -704,11 +699,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.filter_alt_off, size: 64, color: Colors.grey),
-                                  const SizedBox(height: 12),
-                                  const Text(
+                                  Icon(Icons.filter_alt_off, size: 100, color: Theme.of(context).colorScheme.primary.withAlpha(100)),
+                                  Text(
                                     'No videos match the selected filters.',
-                                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   TextButton(
@@ -764,8 +760,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                                   Container(
                                                 width: 80,
                                                 height: 60,
-                                                color: Colors.grey.shade300,
-                                                child: const Icon(Icons.videocam, color: Colors.grey),
+                                                child: const Icon(Icons.videocam),
                                               ),
                                             ),
                                     ),
@@ -790,7 +785,9 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                           video.url,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                                            color: Theme.of(context).colorScheme.secondary,
+                                          ),
                                         ),
                                         if (video.tags.isNotEmpty) ...[
                                           const SizedBox(height: 4),
@@ -847,13 +844,15 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                             ],
                                           ),
                                         ),
-                                        const PopupMenuItem(
+                                        PopupMenuItem(
                                           value: 'delete',
                                           child: Row(
                                             children: [
-                                              Icon(Icons.delete_outline, size: 20),
-                                              SizedBox(width: 8),
-                                              Text('Delete'),
+                                              Icon(Icons.delete_outline, size: 20, color: Theme.of(context).colorScheme.error,),
+                                              const SizedBox(width: 8),
+                                              Text('Delete', style: TextStyle(
+                                                color: Theme.of(context).colorScheme.error
+                                              )),
                                             ],
                                           ),
                                         ),
@@ -871,15 +870,16 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.end,
+          spacing: 16,
           children: [
-            const SizedBox(width: 48), // balance left spacing
-            FloatingActionButton.extended(
-              onPressed: _filteredVideos.isEmpty ? null : _selectRandomVideo,
-              icon: const Icon(Icons.shuffle),
-              label: const Text('Random Video'),
-              tooltip: 'Select a random video from current filter',
-            ),
+            if (_videos.isNotEmpty)
+              FloatingActionButton.extended(
+                onPressed: _filteredVideos.isEmpty ? null : _selectRandomVideo,
+                icon: const Icon(Icons.shuffle),
+                label: const Text('Random Video'),
+                tooltip: 'Select a random video from current filter',
+              ),
             FloatingActionButton(
               onPressed: () => _showVideoDialog(),
               tooltip: 'Add Video',
