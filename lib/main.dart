@@ -88,7 +88,7 @@ class YogaVideoScreen extends StatefulWidget {
 
 class _YogaVideoScreenState extends State<YogaVideoScreen> {
   List<YogaVideo> _videos = [];
-  List<String> _availableTags = ['Morning', 'Stretch', 'Vinyasa', 'Relaxation', 'Beginner'];
+  List<String> _availableTags = [];
   final Set<String> _selectedFilterTags = {};
   YoutubePlayerController? _controller;
   YogaVideo? _currentVideo;
@@ -204,32 +204,27 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       _isLoading = false;
     });
 
-    // Add default sample yoga video if list is empty for immediate usability
-    if (_videos.isEmpty) {
-      await _addDefaultVideo();
-    } else {
-      // Cache missing thumbnails in background for stored items
-      for (var video in _videos) {
-        if (video.thumbnailBase64 == null) {
-          _downloadThumbnailAsBase64(video.videoId).then((base64Str) {
-            if (base64Str != null) {
-              setState(() {
-                final index = _videos.indexWhere((v) => v.id == video.id);
-                if (index != -1) {
-                  _videos[index] = YogaVideo(
-                    id: _videos[index].id,
-                    title: _videos[index].title,
-                    url: _videos[index].url,
-                    videoId: _videos[index].videoId,
-                    tags: _videos[index].tags,
-                    thumbnailBase64: base64Str,
-                  );
-                }
-              });
-              _saveData();
-            }
-          });
-        }
+    // Cache missing thumbnails in background for stored items
+    for (var video in _videos) {
+      if (video.thumbnailBase64 == null) {
+        _downloadThumbnailAsBase64(video.videoId).then((base64Str) {
+          if (base64Str != null) {
+            setState(() {
+              final index = _videos.indexWhere((v) => v.id == video.id);
+              if (index != -1) {
+                _videos[index] = YogaVideo(
+                  id: _videos[index].id,
+                  title: _videos[index].title,
+                  url: _videos[index].url,
+                  videoId: _videos[index].videoId,
+                  tags: _videos[index].tags,
+                  thumbnailBase64: base64Str,
+                );
+              }
+            });
+            _saveData();
+          }
+        });
       }
     }
   }
@@ -241,24 +236,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
     final String encodedTags = jsonEncode(_availableTags);
     await prefs.setString('yoga_tags', encodedTags);
-  }
-
-  Future<void> _addDefaultVideo() async {
-    const defaultUrl = 'https://www.youtube.com/watch?v=v7AYKMP6rOE';
-    final videoId = _extractVideoId(defaultUrl) ?? 'v7AYKMP6rOE';
-    final thumbBase64 = await _downloadThumbnailAsBase64(videoId);
-    final video = YogaVideo(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: 'Morning Yoga Stretch (Sample)',
-      url: defaultUrl,
-      videoId: videoId,
-      tags: ['Morning', 'Stretch'],
-      thumbnailBase64: thumbBase64,
-    );
-    setState(() {
-      _videos.add(video);
-    });
-    await _saveData();
   }
 
   void _playVideo(YogaVideo video) {
@@ -757,7 +734,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                               height: 60,
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) =>
-                                                  Container(
+                                                  SizedBox(
                                                 width: 80,
                                                 height: 60,
                                                 child: const Icon(Icons.videocam),
