@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
 import 'dart:async';
@@ -32,6 +33,7 @@ class YogaVideo {
   final String url;
   final String videoId;
   final List<String> tags;
+  final String? thumbnailBase64;
 
   YogaVideo({
     required this.id,
@@ -39,6 +41,7 @@ class YogaVideo {
     required this.url,
     required this.videoId,
     required this.tags,
+    this.thumbnailBase64,
   });
 
   Map<String, dynamic> toJson() => {
@@ -47,6 +50,7 @@ class YogaVideo {
         'url': url,
         'videoId': videoId,
         'tags': tags,
+        'thumbnailBase64': thumbnailBase64,
       };
 
   factory YogaVideo.fromJson(Map<String, dynamic> json) => YogaVideo(
@@ -55,6 +59,7 @@ class YogaVideo {
         url: json['url'] ?? '',
         videoId: json['videoId'] ?? '',
         tags: List<String>.from(json['tags'] ?? []),
+        thumbnailBase64: json['thumbnailBase64'],
       );
 }
 
@@ -131,6 +136,19 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
   }
 
+  Future<String?> _downloadThumbnailAsBase64(String videoId) async {
+    try {
+      final url = Uri.parse(_getThumbnailUrl(videoId));
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return base64Encode(response.bodyBytes);
+      }
+    } catch (e) {
+      // Ignore network errors
+    }
+    return null;
+  }
+
   List<YogaVideo> get _filteredVideos {
     if (_selectedFilterTags.isEmpty) {
       return _videos;
@@ -173,6 +191,30 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     // Add default sample yoga video if list is empty for immediate usability
     if (_videos.isEmpty) {
       await _addDefaultVideo();
+    } else {
+      // Cache missing thumbnails in background for stored items
+      for (var video in _videos) {
+        if (video.thumbnailBase64 == null) {
+          _downloadThumbnailAsBase64(video.videoId).then((base64Str) {
+            if (base64Str != null) {
+              setState(() {
+                final index = _videos.indexWhere((v) => v.id == video.id);
+                if (index != -1) {
+                  _videos[index] = YogaVideo(
+                    id: _videos[index].id,
+                    title: _videos[index].title,
+                    url: _videos[index].url,
+                    videoId: _videos[index].videoId,
+                    tags: _videos[index].tags,
+                    thumbnailBase64: base64Str,
+                  );
+                }
+              });
+              _saveData();
+            }
+          });
+        }
+      }
     }
   }
 
@@ -188,12 +230,14 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   Future<void> _addDefaultVideo() async {
     const defaultUrl = 'https://www.youtube.com/watch?v=v7AYKMP6rOE';
     final videoId = _extractVideoId(defaultUrl) ?? 'v7AYKMP6rOE';
+    final thumbBase64 = await _downloadThumbnailAsBase64(videoId);
     final video = YogaVideo(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: 'Morning Yoga Stretch (Sample)',
       url: defaultUrl,
       videoId: videoId,
       tags: ['Morning', 'Stretch'],
+      thumbnailBase64: thumbBase64,
     );
     setState(() {
       _videos.add(video);
@@ -422,7 +466,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
               child: const Text('Cancel'),
             ),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final url = urlController.text.trim();
                 final videoId = _extractVideoId(url);
                 if (videoId == null) {
@@ -437,6 +481,14 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     ? 'Yoga Video ($videoId)'
                     : titleController.text.trim();
 
+                // Download thumbnail as base64 for local storage
+                String? thumbBase64 = isEditing ? video.thumbnailBase64 : null;
+                if (!isEditing || video.videoId != videoId || thumbBase64 == null) {
+                  thumbBase64 = await _downloadThumbnailAsBase64(videoId);
+                }
+
+                if (!context.mounted) return;
+
                 setState(() {
                   if (isEditing) {
                     final index = _videos.indexWhere((v) => v.id == video.id);
@@ -447,6 +499,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                         url: url,
                         videoId: videoId,
                         tags: selectedTags.toList(),
+                        thumbnailBase64: thumbBase64,
                       );
                     }
                     if (_currentVideo?.id == video.id) {
@@ -462,6 +515,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       url: url,
                       videoId: videoId,
                       tags: selectedTags.toList(),
+                      thumbnailBase64: thumbBase64,
                     );
                     _videos.insert(0, newVideo);
                     if (_currentVideo == null) {
@@ -661,7 +715,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                               itemBuilder: (context, index) {
                                 final video = filteredVideos[index];
                                 final isPlaying = _currentVideo?.id == video.id;
-                                final thumbnailUrl = _getThumbnailUrl(video.videoId);
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(
@@ -679,25 +732,32 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                         : BorderSide.none,
                                   ),
                                   child: ListTile(
-                                    contentPadding: const EdgeInsets.all(8), // wait, let's fix const: const
+                                    contentPadding: const EdgeInsets.all(8),
                                     leading: ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        thumbnailUrl,
-                                        width: 80,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            Container(
-                                          width: 80,
-                                          height: 60,
-                                          color: Colors.grey.shade300,
-                                          child: const Icon(Icons.videocam),
-                                        ),
-                                      ),
+                                      child: video.thumbnailBase64 != null
+                                          ? Image.memory(
+                                              base64Decode(video.thumbnailBase64!),
+                                              width: 80,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.network(
+                                              _getThumbnailUrl(video.videoId),
+                                              width: 80,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) =>
+                                                  Container(
+                                                width: 80,
+                                                height: 60,
+                                                color: Colors.grey.shade300,
+                                                child: const Icon(Icons.videocam, color: Colors.grey),
+                                              ),
+                                            ),
                                     ),
                                     title: Text(
-                                      video.title,
+                                      '${index + 1}. ${video.title}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -758,12 +818,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.edit_outlined),
+                                          icon: const Icon(Icons.edit_outlined, color: Colors.teal),
                                           onPressed: () => _showVideoDialog(video: video),
                                           tooltip: 'Edit video',
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.delete_outline),
+                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                                           onPressed: () => _deleteVideo(video),
                                           tooltip: 'Delete video',
                                         ),
