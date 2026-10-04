@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -7,7 +8,12 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:async';
 
-void main() {
+import 'globals.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final packageInfo = await PackageInfo.fromPlatform();
+  Globals.packageInfo = packageInfo;
   runApp(const YogaVideoApp());
 }
 
@@ -17,12 +23,20 @@ class YogaVideoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Yoga Video Manager',
+      title: Globals.packageInfo.appName,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const YogaVideoScreen(),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+      ),
+      themeMode: ThemeMode.system,
+      home: YogaVideoScreen(title: Globals.packageInfo.appName),
     );
   }
 }
@@ -64,7 +78,9 @@ class YogaVideo {
 }
 
 class YogaVideoScreen extends StatefulWidget {
-  const YogaVideoScreen({super.key});
+  const YogaVideoScreen({super.key, required this.title});
+
+  final String title;
 
   @override
   State<YogaVideoScreen> createState() => _YogaVideoScreenState();
@@ -559,7 +575,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yoga Video Manager'),
+        title: Text(widget.title),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: _isLoading
@@ -757,7 +773,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                             ),
                                     ),
                                     title: Text(
-                                      '${index + 1}. ${video.title}',
+                                      video.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
