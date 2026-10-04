@@ -534,9 +534,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       thumbnailBase64: thumbBase64,
                     );
                     _videos.insert(0, newVideo);
-                    if (_currentVideo == null) {
-                      _playVideo(newVideo);
-                    }
                   }
 
                   for (var tag in localAvailableTags) {
