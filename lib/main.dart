@@ -814,20 +814,38 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                         ],
                                       ],
                                     ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_outlined, color: Colors.teal),
-                                          onPressed: () => _showVideoDialog(video: video),
-                                          tooltip: 'Edit video',
+                                    trailing: PopupMenuButton<String>(
+                                      icon: const Icon(Icons.more_vert),
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          _showVideoDialog(video: video);
+                                        } else if (value == 'delete') {
+                                          _deleteVideo(video);
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.edit_outlined, size: 20),
+                                              SizedBox(width: 8),
+                                              Text('Edit'),
+                                            ],
+                                          ),
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                          onPressed: () => _deleteVideo(video),
-                                          tooltip: 'Delete video',
+                                        const PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.delete_outline, size: 20),
+                                              SizedBox(width: 8),
+                                              Text('Delete'),
+                                            ],
+                                          ),
                                         ),
                                       ],
+                                      tooltip: 'More options',
                                     ),
                                     onTap: () => _playVideo(video),
                                   ),
