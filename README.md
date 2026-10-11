@@ -1,17 +1,13 @@
-# yoga_app
+![Yoga Video Manager app preview image](app_preview.png "Yoga Video Manager")
 
-Daily Yoga Videos
+# Yoga Video Manager App
+
+A simple video manager for Yoga videos on Android.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is a Flutter application written in Dart.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Run `flutter run` to run the app.
+- To run in release mode: `flutter run --release`
+- To build release appbundle: `flutter build appbundle --release`
