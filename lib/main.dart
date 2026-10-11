@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:js_flutter/components/floating_action_button.dart';
 import 'package:js_flutter/components/input_field.dart';
 import 'package:js_flutter/components/no_data_tile.dart';
@@ -11,11 +10,12 @@ import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yoga_app/database.dart';
+import 'package:yoga_app/video.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'globals.dart';
+import 'intent_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,42 +48,6 @@ class YogaVideoApp extends StatelessWidget {
   }
 }
 
-class YogaVideo {
-  final String id;
-  final String title;
-  final String url;
-  final String videoId;
-  final List<String> tags;
-  final String? thumbnailBase64;
-
-  YogaVideo({
-    required this.id,
-    required this.title,
-    required this.url,
-    required this.videoId,
-    required this.tags,
-    this.thumbnailBase64,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'url': url,
-    'videoId': videoId,
-    'tags': tags,
-    'thumbnailBase64': thumbnailBase64,
-  };
-
-  factory YogaVideo.fromJson(Map<String, dynamic> json) => YogaVideo(
-    id: json['id'] ?? '',
-    title: json['title'] ?? '',
-    url: json['url'] ?? '',
-    videoId: json['videoId'] ?? '',
-    tags: List<String>.from(json['tags'] ?? []),
-    thumbnailBase64: json['thumbnailBase64'],
-  );
-}
-
 class YogaVideoScreen extends StatefulWidget {
   const YogaVideoScreen({super.key, required this.title});
 
@@ -94,166 +58,31 @@ class YogaVideoScreen extends StatefulWidget {
 }
 
 class _YogaVideoScreenState extends State<YogaVideoScreen> {
-  List<YogaVideo> _videos = [];
-  List<String> _availableTags = [];
   final Set<String> _selectedFilterTags = {};
   YoutubePlayerController? _controller;
   YogaVideo? _currentVideo;
   bool _isLoading = true;
   StreamSubscription? _textSub;
+  final Database _database = Database();
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _database.loadData().then((_) {
+      setState(() => _isLoading = false);
+    });
 
     // Listen to share intents while app is open
-    _textSub = ReceiveSharingIntent.instance.getMediaStream().listen(
-      (List<SharedMediaFile> value) {
-        if (value.isNotEmpty) {
-          final sharedText = value.first.path;
-          if (sharedText.isNotEmpty) {
-            _handleSharedText(sharedText);
-          }
-        }
-      },
-      onError: (err) {
-        // handle error
-      },
-    );
-
-    // Get share intent when app is launched from closed state
-    ReceiveSharingIntent.instance.getInitialMedia().then((
-      List<SharedMediaFile> value,
-    ) {
-      if (value.isNotEmpty) {
-        final sharedText = value.first.path;
-        if (sharedText.isNotEmpty) {
-          _handleSharedText(sharedText);
-          ReceiveSharingIntent.instance.reset();
-        }
-      }
-    });
-  }
-
-  void _handleSharedText(String text) {
-    final videoId = _extractVideoId(text);
-    if (videoId != null ||
-        text.contains('youtube.com') ||
-        text.contains('youtu.be')) {
-      String urlToUse = text;
-      final uriMatch = RegExp(r'https?://[^\s]+').firstMatch(text);
-      if (uriMatch != null) {
-        urlToUse = uriMatch.group(0)!;
-      }
-      _showVideoDialog(initialUrl: urlToUse);
-    }
-  }
-
-  String? _extractVideoId(String url) {
-    final regExp = RegExp(
-      r'^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*',
-      caseSensitive: false,
-    );
-    final match = regExp.firstMatch(url);
-    if (match != null && match.group(2)!.length == 11) {
-      return match.group(2);
-    }
-    return null;
-  }
-
-  String _getThumbnailUrl(String videoId) {
-    return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
-  }
-
-  Future<String?> _downloadThumbnailAsBase64(String videoId) async {
-    try {
-      final url = Uri.parse(_getThumbnailUrl(videoId));
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return base64Encode(response.bodyBytes);
-      }
-    } catch (e) {
-      // Ignore network errors
-    }
-    return null;
+    _textSub = init(_showVideoDialog);
   }
 
   List<YogaVideo> get _filteredVideos {
     if (_selectedFilterTags.isEmpty) {
-      return _videos;
+      return _database.videos;
     }
-    return _videos.where((video) {
+    return _database.videos.where((video) {
       return video.tags.any((tag) => _selectedFilterTags.contains(tag));
     }).toList();
-  }
-
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Load tags
-    final String? tagsJson = prefs.getString('yoga_tags');
-    if (tagsJson != null) {
-      try {
-        final List<dynamic> decodedTags = jsonDecode(tagsJson);
-        _availableTags = decodedTags.map((e) => e.toString()).toList();
-      } catch (e) {
-        // use default
-      }
-    }
-
-    // Load videos
-    final String? videosJson = prefs.getString('yoga_videos');
-    if (videosJson != null) {
-      try {
-        final List<dynamic> decodedVideos = jsonDecode(videosJson);
-        setState(() {
-          _videos = decodedVideos
-              .map((item) => YogaVideo.fromJson(item))
-              .toList();
-        });
-      } catch (e) {
-        // handle error
-      }
-    }
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Cache missing thumbnails in background for stored items
-    for (var video in _videos) {
-      if (video.thumbnailBase64 == null) {
-        _downloadThumbnailAsBase64(video.videoId).then((base64Str) {
-          if (base64Str != null) {
-            setState(() {
-              final index = _videos.indexWhere((v) => v.id == video.id);
-              if (index != -1) {
-                _videos[index] = YogaVideo(
-                  id: _videos[index].id,
-                  title: _videos[index].title,
-                  url: _videos[index].url,
-                  videoId: _videos[index].videoId,
-                  tags: _videos[index].tags,
-                  thumbnailBase64: base64Str,
-                );
-              }
-            });
-            _saveData();
-          }
-        });
-      }
-    }
-  }
-
-  Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedVideos = jsonEncode(
-      _videos.map((v) => v.toJson()).toList(),
-    );
-    await prefs.setString('yoga_videos', encodedVideos);
-
-    final String encodedTags = jsonEncode(_availableTags);
-    await prefs.setString('yoga_tags', encodedTags);
   }
 
   void _playVideo(YogaVideo video) {
@@ -374,7 +203,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     );
     final inlineTagController = TextEditingController();
     Set<String> selectedTags = isEditing ? Set.from(video.tags) : {};
-    List<String> localAvailableTags = List.from(_availableTags);
+    List<String> localAvailableTags = List.from(_database.tags);
     bool isAddingTag = false;
 
     openDialog(
@@ -466,8 +295,9 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       mainAction: DialogAction(
         title: 'Save',
         onPressed: () async {
+          final dialogContext = context;
           final url = urlController.text.trim();
-          final videoId = _extractVideoId(url);
+          final videoId = YogaVideo.extractVideoId(url);
           if (videoId == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -485,16 +315,18 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           // Download thumbnail as base64 for local storage
           String? thumbBase64 = isEditing ? video.thumbnailBase64 : null;
           if (!isEditing || video.videoId != videoId || thumbBase64 == null) {
-            thumbBase64 = await _downloadThumbnailAsBase64(videoId);
+            thumbBase64 = await video?.downloadThumbnailAsBase64();
           }
 
           if (!context.mounted) return;
 
           setState(() {
             if (isEditing) {
-              final index = _videos.indexWhere((v) => v.id == video.id);
+              final index = _database.videos.indexWhere(
+                (v) => v.id == video.id,
+              );
               if (index != -1) {
-                _videos[index] = YogaVideo(
+                _database.videos[index] = YogaVideo(
                   id: video.id,
                   title: title,
                   url: url,
@@ -504,7 +336,9 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 );
               }
               if (_currentVideo?.id == video.id) {
-                _currentVideo = _videos.firstWhere((v) => v.id == video.id);
+                _currentVideo = _database.videos.firstWhere(
+                  (v) => v.id == video.id,
+                );
                 if (_currentVideo!.videoId != video.videoId) {
                   _playVideo(_currentVideo!);
                 }
@@ -518,18 +352,19 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 tags: selectedTags.toList(),
                 thumbnailBase64: thumbBase64,
               );
-              _videos.insert(0, newVideo);
+              _database.videos.insert(0, newVideo);
             }
 
             for (var tag in localAvailableTags) {
-              if (!_availableTags.contains(tag)) {
-                _availableTags.add(tag);
+              if (!_database.tags.contains(tag)) {
+                _database.tags.add(tag);
               }
             }
           });
-          _saveData();
+          _database.saveData();
 
-          Navigator.pop(context);
+          if (!dialogContext.mounted) return;
+          Navigator.pop(dialogContext);
         },
       ),
     );
@@ -537,14 +372,14 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   void _deleteVideo(YogaVideo video) {
     setState(() {
-      _videos.removeWhere((v) => v.id == video.id);
+      _database.videos.removeWhere((v) => v.id == video.id);
       if (_currentVideo?.id == video.id) {
         _controller?.close();
         _controller = null;
         _currentVideo = null;
       }
     });
-    _saveData();
+    _database.saveData();
   }
 
   @override
@@ -637,7 +472,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 ),
 
                 // Tag Filter Bar
-                if (_availableTags.isNotEmpty)
+                if (_database.tags.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -647,7 +482,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       height: 42,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: _availableTags.map((tag) {
+                        children: _database.tags.map((tag) {
                           final isSelected = _selectedFilterTags.contains(tag);
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),
@@ -673,7 +508,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
                 // Video List
                 Expanded(
-                  child: _videos.isEmpty
+                  child: _database.videos.isEmpty
                       ? NoDataTile(
                           text: 'No YouTube videos added yet.',
                           icon: Icons.playlist_add,
@@ -727,7 +562,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                           fit: BoxFit.cover,
                                         )
                                       : Image.network(
-                                          _getThumbnailUrl(video.videoId),
+                                          video.getThumbnailUrl(),
                                           width: 80,
                                           height: 60,
                                           fit: BoxFit.cover,
@@ -837,7 +672,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           spacing: 16,
           children: [
-            if (_videos.isNotEmpty)
+            if (_database.videos.isNotEmpty)
               FloatingActionButton.extended(
                 onPressed: _filteredVideos.isEmpty ? null : _selectRandomVideo,
                 icon: const Icon(Icons.shuffle),
