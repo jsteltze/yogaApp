@@ -1,55 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:js_flutter/components/app_layout.dart';
 import 'package:js_flutter/components/floating_action_button.dart';
 import 'package:js_flutter/components/no_data_tile.dart';
+import 'package:js_flutter/components/view_header.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_listview.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'dialogs.dart';
-import 'globals.dart';
 import 'intent_handler.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final packageInfo = await PackageInfo.fromPlatform();
-  Globals.packageInfo = packageInfo;
-  runApp(const YogaVideoApp());
-}
-
-class YogaVideoApp extends StatelessWidget {
-  const YogaVideoApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: Globals.packageInfo.appName,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      themeMode: ThemeMode.system,
-      home: YogaVideoScreen(title: Globals.packageInfo.appName),
-    );
-  }
+  initApp(YogaVideoScreen());
 }
 
 class YogaVideoScreen extends StatefulWidget {
-  const YogaVideoScreen({super.key, required this.title});
-
-  final String title;
+  const YogaVideoScreen({super.key});
 
   @override
   State<YogaVideoScreen> createState() => _YogaVideoScreenState();
@@ -126,69 +97,59 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          child: Image.asset('assets/yoga_logo.png'),
-        ),
-        title: FittedBox(fit: BoxFit.fitWidth, child: Text(widget.title)),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+    return createScaffold(
+      context: context,
+      child: Column(
+        children: [
+          // Video Player Section at top if a video is selected
+          if (_currentVideo != null && _controller != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Video Player Section at top if a video is selected
-                if (_currentVideo != null && _controller != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      YoutubePlayer(controller: _controller!),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 8.0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                _currentVideo!.title,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                _controller?.close();
-                                setState(() {
-                                  _controller = null;
-                                  _currentVideo = null;
-                                });
-                              },
-                              tooltip: 'Close player',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 1),
-                    ],
-                  )
-                else
-                  const SizedBox.shrink(),
-
-                // Video List Header & Count
+                YoutubePlayer(controller: _controller!),
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
+                    horizontal: 12.0,
                     vertical: 8.0,
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _currentVideo!.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          _controller?.close();
+                          setState(() {
+                            _controller = null;
+                            _currentVideo = null;
+                          });
+                        },
+                        tooltip: 'Close player',
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+              ],
+            )
+          else
+            const SizedBox.shrink(),
+
+          // Video List Header & Count
+          if (_database.videos.isNotEmpty)
+            ViewHeader(
+              Column(
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
@@ -209,75 +170,78 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                         ),
                     ],
                   ),
-                ),
 
-                // Tag Filter Bar
-                if (_database.tags.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 2.0,
-                    ),
-                    child: SizedBox(
-                      height: 42,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: _database.tags.map((tag) {
-                          final isSelected = _selectedFilterTags.contains(tag);
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: FilterChip(
-                              label: Text(tag),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedFilterTags.add(tag);
-                                  } else {
-                                    _selectedFilterTags.remove(tag);
-                                  }
-                                });
-                              },
-                            ),
-                          );
-                        }).toList(),
+                  // Tag Filter Bar
+                  if (_database.tags.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 2.0,
+                      ),
+                      child: SizedBox(
+                        height: 42,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: _database.tags.map((tag) {
+                            final isSelected = _selectedFilterTags.contains(
+                              tag,
+                            );
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: FilterChip(
+                                label: Text(tag),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      _selectedFilterTags.add(tag);
+                                    } else {
+                                      _selectedFilterTags.remove(tag);
+                                    }
+                                  });
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
-                  ),
-                const SizedBox(height: 4),
-
-                // Video List
-                Expanded(
-                  child: _database.videos.isEmpty
-                      ? NoDataTile(
-                          text: 'No YouTube videos added yet.',
-                          icon: Icons.playlist_add,
-                        )
-                      : _filteredVideos.isEmpty
-                      ? NoDataTile(
-                          text: 'No videos match the selected filters.',
-                          icon: Icons.filter_alt_off,
-                          actionButton: DialogAction(
-                            title: 'Clear Filters',
-                            onPressed: () {
-                              setState(() {
-                                _selectedFilterTags.clear();
-                              });
-                            },
-                          ),
-                        )
-                      : createListView(
-                          _filteredVideos,
-                          _currentVideo,
-                          _database,
-                          _onSubmitted,
-                          _playVideo,
-                          _deleteVideo,
-                          context,
-                        ),
-                ),
-              ],
+                ],
+              ),
             ),
+
+          // Video List
+          Expanded(
+            child: _database.videos.isEmpty
+                ? NoDataTile(
+                    text: 'No videos added yet.',
+                    icon: Icons.playlist_add,
+                  )
+                : _filteredVideos.isEmpty
+                ? NoDataTile(
+                    text: 'No videos match the selected filters.',
+                    icon: Icons.filter_alt_off,
+                    actionButton: DialogAction(
+                      title: 'Clear Filters',
+                      onPressed: () {
+                        setState(() {
+                          _selectedFilterTags.clear();
+                        });
+                      },
+                    ),
+                  )
+                : createListView(
+                    _filteredVideos,
+                    _currentVideo,
+                    _database,
+                    _onSubmitted,
+                    _playVideo,
+                    _deleteVideo,
+                    context,
+                  ),
+          ),
+        ],
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
@@ -306,7 +270,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           ],
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      isLoading: _isLoading,
     );
   }
 }
