@@ -16,6 +16,7 @@ class Database {
       try {
         final List<dynamic> decodedTags = jsonDecode(tagsJson);
         tags = decodedTags.map((e) => e.toString()).toList();
+        tags.sort();
       } catch (e) {
         // use default
       }

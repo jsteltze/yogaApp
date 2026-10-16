@@ -23,6 +23,8 @@ ListView createListView(
     itemCount: filteredVideos.length,
     itemBuilder: (context, index) {
       final video = filteredVideos[index];
+      final tags = video.tags;
+      tags.sort();
       final isPlaying = currentVideo?.id == video.id;
 
       return Card(
@@ -80,12 +82,12 @@ ListView createListView(
                 style: Theme.of(context).textTheme.labelSmall!
                     .copyWith(color: Theme.of(context).colorScheme.secondary),
               ),
-              if (video.tags.isNotEmpty) ...[
+              if (tags.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Wrap(
                   spacing: 4.0,
                   runSpacing: 2.0,
-                  children: video.tags
+                  children: tags
                       .map(
                         (tag) => Container(
                           padding: const EdgeInsets.symmetric(
