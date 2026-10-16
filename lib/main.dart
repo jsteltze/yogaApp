@@ -1,19 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:js_flutter/components/floating_action_button.dart';
-import 'package:js_flutter/components/input_field.dart';
 import 'package:js_flutter/components/no_data_tile.dart';
-import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
+import 'package:yoga_app/video_listview.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import 'dialogs.dart';
 import 'globals.dart';
 import 'intent_handler.dart';
 
@@ -73,7 +71,13 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     });
 
     // Listen to share intents while app is open
-    _textSub = init(_showVideoDialog);
+    _textSub = init(context, _database, _onSubmitted);
+  }
+
+  void _onSubmitted(YogaVideo video) {
+    setState(() {
+      _currentVideo = video;
+    });
   }
 
   List<YogaVideo> get _filteredVideos {
@@ -101,273 +105,11 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     });
   }
 
-  void _selectRandomVideo() {
-    final filtered = _filteredVideos;
-    if (filtered.isEmpty) return;
-
-    final random = Random();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            int displayIndex = random.nextInt(filtered.length);
-            final stopwatch = Stopwatch()..start();
-
-            void roll() {
-              if (stopwatch.elapsedMilliseconds < 3000) {
-                if (Navigator.canPop(dialogContext)) {
-                  setDialogState(() {
-                    displayIndex = random.nextInt(filtered.length);
-                  });
-                  Future.delayed(const Duration(milliseconds: 120), roll);
-                }
-              } else {
-                final winningVideo = filtered[random.nextInt(filtered.length)];
-                if (Navigator.canPop(dialogContext)) {
-                  Navigator.pop(dialogContext);
-                  _playVideo(winningVideo);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('🎲 Selected: ${winningVideo.title}'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              }
-            }
-
-            // Kick off rolling animation
-            Future.delayed(const Duration(milliseconds: 120), roll);
-
-            final currentDisplayVideo = filtered[displayIndex];
-
-            return AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 16),
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '🎲 Rolling for a random video...',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      currentDisplayVideo.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   @override
   void dispose() {
     _controller?.close();
     _textSub?.cancel();
     super.dispose();
-  }
-
-  void _showVideoDialog({YogaVideo? video, String? initialUrl}) {
-    final isEditing = video != null;
-    final urlController = TextEditingController(
-      text: isEditing ? video.url : (initialUrl ?? ''),
-    );
-    final titleController = TextEditingController(
-      text: isEditing ? video.title : '',
-    );
-    final inlineTagController = TextEditingController();
-    Set<String> selectedTags = isEditing ? Set.from(video.tags) : {};
-    List<String> localAvailableTags = List.from(_database.tags);
-    bool isAddingTag = false;
-
-    openDialog(
-      context,
-      title: isEditing ? 'Edit YouTube Video' : 'Add YouTube Video',
-      titleIcon: Icons.video_library,
-      child: (ctx, setDialogState, toggleMainAction) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InputField('Title (optional)', titleController, isOptional: true),
-          const SizedBox(height: 12),
-          InputField('YouTube URL', urlController),
-          const SizedBox(height: 16),
-          const Text(
-            'Select Tags',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6.0,
-            runSpacing: 4.0,
-            children: [
-              ...localAvailableTags.map((tag) {
-                final isSelected = selectedTags.contains(tag);
-                return FilterChip(
-                  label: Text(tag),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setDialogState(() {
-                      if (selected) {
-                        selectedTags.add(tag);
-                      } else {
-                        selectedTags.remove(tag);
-                      }
-                    });
-                  },
-                );
-              }),
-              if (isAddingTag)
-                SizedBox(
-                  width: 120,
-                  height: 36,
-                  child: TextField(
-                    controller: inlineTagController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      hintText: 'Tag name',
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
-                    ),
-                    onSubmitted: (value) {
-                      final newTag = value.trim();
-                      if (newTag.isNotEmpty) {
-                        setDialogState(() {
-                          if (!localAvailableTags.contains(newTag)) {
-                            localAvailableTags.add(newTag);
-                          }
-                          selectedTags.add(newTag);
-                          inlineTagController.clear();
-                          isAddingTag = false;
-                        });
-                      } else {
-                        setDialogState(() {
-                          isAddingTag = false;
-                        });
-                      }
-                    },
-                  ),
-                )
-              else
-                ActionChip(
-                  avatar: const Icon(Icons.add, size: 16),
-                  label: const Text('New Tag'),
-                  onPressed: () {
-                    setDialogState(() {
-                      isAddingTag = true;
-                    });
-                  },
-                ),
-            ],
-          ),
-        ],
-      ),
-      mainAction: DialogAction(
-        title: 'Save',
-        onPressed: () async {
-          final dialogContext = context;
-          final url = urlController.text.trim();
-          final videoId = YogaVideo.extractVideoId(url);
-          if (videoId == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Invalid YouTube URL. Please check and try again.',
-                ),
-              ),
-            );
-            return;
-          }
-          final title = titleController.text.trim().isEmpty
-              ? 'Yoga Video ($videoId)'
-              : titleController.text.trim();
-
-          // Download thumbnail as base64 for local storage
-          String? thumbBase64 = isEditing ? video.thumbnailBase64 : null;
-          if (!isEditing || video.videoId != videoId || thumbBase64 == null) {
-            thumbBase64 = await video?.downloadThumbnailAsBase64();
-          }
-
-          if (!context.mounted) return;
-
-          setState(() {
-            if (isEditing) {
-              final index = _database.videos.indexWhere(
-                (v) => v.id == video.id,
-              );
-              if (index != -1) {
-                _database.videos[index] = YogaVideo(
-                  id: video.id,
-                  title: title,
-                  url: url,
-                  videoId: videoId,
-                  tags: selectedTags.toList(),
-                  thumbnailBase64: thumbBase64,
-                );
-              }
-              if (_currentVideo?.id == video.id) {
-                _currentVideo = _database.videos.firstWhere(
-                  (v) => v.id == video.id,
-                );
-                if (_currentVideo!.videoId != video.videoId) {
-                  _playVideo(_currentVideo!);
-                }
-              }
-            } else {
-              final newVideo = YogaVideo(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                title: title,
-                url: url,
-                videoId: videoId,
-                tags: selectedTags.toList(),
-                thumbnailBase64: thumbBase64,
-              );
-              _database.videos.insert(0, newVideo);
-            }
-
-            for (var tag in localAvailableTags) {
-              if (!_database.tags.contains(tag)) {
-                _database.tags.add(tag);
-              }
-            }
-          });
-          _database.saveData();
-
-          if (!dialogContext.mounted) return;
-          Navigator.pop(dialogContext);
-        },
-      ),
-    );
   }
 
   void _deleteVideo(YogaVideo video) {
@@ -384,8 +126,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredVideos = _filteredVideos;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -452,7 +192,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Your Yoga Videos (${filteredVideos.length})',
+                        'Your Yoga Videos (${_filteredVideos.length})',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -513,7 +253,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           text: 'No YouTube videos added yet.',
                           icon: Icons.playlist_add,
                         )
-                      : filteredVideos.isEmpty
+                      : _filteredVideos.isEmpty
                       ? NoDataTile(
                           text: 'No videos match the selected filters.',
                           icon: Icons.filter_alt_off,
@@ -526,142 +266,14 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                             },
                           ),
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 80),
-                          itemCount: filteredVideos.length,
-                          itemBuilder: (context, index) {
-                            final video = filteredVideos[index];
-                            final isPlaying = _currentVideo?.id == video.id;
-
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              elevation: isPlaying ? 4 : 1,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: isPlaying
-                                    ? BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        width: 2,
-                                      )
-                                    : BorderSide.none,
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(8),
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: video.thumbnailBase64 != null
-                                      ? Image.memory(
-                                          base64Decode(video.thumbnailBase64!),
-                                          width: 80,
-                                          height: 60,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.network(
-                                          video.getThumbnailUrl(),
-                                          width: 80,
-                                          height: 60,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  SizedBox(
-                                                    width: 80,
-                                                    height: 60,
-                                                    child: const Icon(
-                                                      Icons.videocam,
-                                                    ),
-                                                  ),
-                                        ),
-                                ),
-                                title: Text(
-                                  video.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontWeight: isPlaying
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: isPlaying
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                  ),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      video.url,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall!
-                                          .copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .secondary,
-                                          ),
-                                    ),
-                                    if (video.tags.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Wrap(
-                                        spacing: 4.0,
-                                        runSpacing: 2.0,
-                                        children: video.tags
-                                            .map(
-                                              (tag) => Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .secondaryContainer
-                                                      .withValues(alpha: 0.6),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: Text(
-                                                  tag,
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSecondaryContainer,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                trailing: createPopupMenu([
-                                  DialogAction(
-                                    title: 'Edit',
-                                    icon: editIcon,
-                                    onPressed: () =>
-                                        _showVideoDialog(video: video),
-                                  ),
-                                  DialogAction(
-                                    title: 'Delete',
-                                    icon: deleteIcon,
-                                    isDestructive: true,
-                                    onPressed: () => _deleteVideo(video),
-                                  ),
-                                ]),
-                                onTap: () => _playVideo(video),
-                              ),
-                            );
-                          },
+                      : createListView(
+                          _filteredVideos,
+                          _currentVideo,
+                          _database,
+                          _onSubmitted,
+                          _playVideo,
+                          _deleteVideo,
+                          context,
                         ),
                 ),
               ],
@@ -674,12 +286,23 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           children: [
             if (_database.videos.isNotEmpty)
               FloatingActionButton.extended(
-                onPressed: _filteredVideos.isEmpty ? null : _selectRandomVideo,
+                onPressed: _filteredVideos.isEmpty
+                    ? null
+                    : () => selectRandomVideo(
+                        context,
+                        _filteredVideos,
+                        _playVideo,
+                      ),
                 icon: const Icon(Icons.shuffle),
                 label: const Text('Random Video'),
                 tooltip: 'Select a random video from current filter',
               ),
-            createFAB(context, 'Add Video', addIcon, _showVideoDialog),
+            createFAB(
+              context,
+              'Add Video',
+              addIcon,
+              () => showVideoDialog(context, _database, _onSubmitted),
+            ),
           ],
         ),
       ),
