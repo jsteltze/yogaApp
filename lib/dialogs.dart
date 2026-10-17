@@ -1,9 +1,20 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:js_flutter/components/info_panel.dart';
+import 'package:js_flutter/components/info_table_row.dart';
 import 'package:js_flutter/components/input_field.dart';
+import 'package:js_flutter/components/link.dart';
+import 'package:js_flutter/components/styled_text.dart';
+import 'package:js_flutter/components/warning.dart';
+import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
+import 'package:js_flutter/utils/logger.dart';
+import 'package:js_flutter/utils/package_info_global.dart';
 import 'package:js_flutter/utils/snackbar_utils.dart';
+import 'package:js_flutter/utils/timestampx.dart';
+import 'package:yoga_app/generated/app_build_timestamp.g.dart';
 import 'package:yoga_app/video.dart';
 
 import 'database.dart';
@@ -130,6 +141,7 @@ void showVideoDialog(
         Wrap(
           spacing: 6.0,
           runSpacing: 4.0,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             ...localAvailableTags.map((tag) {
               final isSelected = selectedTags.contains(tag);
@@ -150,7 +162,6 @@ void showVideoDialog(
             if (isAddingTag)
               SizedBox(
                 width: 120,
-                height: 36,
                 child: TextField(
                   controller: inlineTagController,
                   autofocus: true,
@@ -210,9 +221,7 @@ void showVideoDialog(
           );
           return;
         }
-        final title = titleController.text.trim().isEmpty
-            ? 'Yoga Video ($videoId)'
-            : titleController.text.trim();
+        final title = titleController.text.trim();
 
         // Download thumbnail as base64 for local storage
         String? thumbBase64 = isEditing ? video.thumbnailBase64 : null;
@@ -222,10 +231,11 @@ void showVideoDialog(
 
         if (!context.mounted) return;
 
+        YogaVideo? editVideo;
         if (isEditing) {
           final index = db.videos.indexWhere((v) => v.id == video.id);
           if (index != -1) {
-            db.videos[index] = YogaVideo(
+            editVideo = YogaVideo(
               id: video.id,
               title: title,
               url: url,
@@ -233,10 +243,11 @@ void showVideoDialog(
               tags: selectedTags.toList(),
               thumbnailBase64: thumbBase64,
             );
-            onSubmitted(db.videos[index]);
+            db.videos[index] = editVideo;
           }
-        } else {
-          final newVideo = YogaVideo(
+        }
+        if (editVideo == null) {
+          editVideo = YogaVideo(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             title: title,
             url: url,
@@ -244,8 +255,7 @@ void showVideoDialog(
             tags: selectedTags.toList(),
             thumbnailBase64: thumbBase64,
           );
-          db.videos.insert(0, newVideo);
-          onSubmitted(newVideo);
+          db.videos.insert(0, editVideo);
         }
 
         for (var tag in localAvailableTags) {
@@ -254,6 +264,7 @@ void showVideoDialog(
           }
         }
         db.saveData();
+        onSubmitted(editVideo);
 
         if (!dialogContext.mounted) return;
         Navigator.pop(dialogContext);

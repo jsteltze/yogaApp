@@ -29,7 +29,7 @@ ListView createListView(
 
       return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        elevation: isPlaying ? 4 : 1,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: isPlaying

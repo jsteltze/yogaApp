@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:js_flutter/components/app_layout.dart';
 import 'package:js_flutter/components/floating_action_button.dart';
 import 'package:js_flutter/components/no_data_tile.dart';
+import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/components/view_header.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
@@ -47,7 +48,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   void _onSubmitted(YogaVideo video) {
     setState(() {
-      _currentVideo = video;
+      //_currentVideo = video;
     });
   }
 
@@ -188,10 +189,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                   // Tag Filter Bar
                   if (_database.tags.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 2.0,
-                      ),
+                      padding: const EdgeInsets.all(2.0),
                       child: SizedBox(
                         height: 42,
                         child: ListView(
