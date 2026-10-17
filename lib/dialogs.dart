@@ -119,6 +119,7 @@ void showVideoDialog(
   final inlineTagController = TextEditingController();
   Set<String> selectedTags = isEditing ? Set.from(video.tags) : {};
   List<String> localAvailableTags = List.from(db.tags);
+  localAvailableTags.sort();
   bool isAddingTag = false;
 
   openDialog(

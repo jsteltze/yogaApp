@@ -69,5 +69,7 @@ class Database {
 
     final String encodedTags = jsonEncode(tags);
     await prefs.setString('yoga_tags', encodedTags);
+
+    tags.sort();
   }
 }
