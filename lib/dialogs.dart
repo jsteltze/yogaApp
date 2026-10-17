@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:js_flutter/components/info_panel.dart';
 import 'package:js_flutter/components/info_table_row.dart';
 import 'package:js_flutter/components/input_field.dart';
+import 'package:js_flutter/components/input_title.dart';
 import 'package:js_flutter/components/link.dart';
 import 'package:js_flutter/components/styled_text.dart';
 import 'package:js_flutter/components/warning.dart';
@@ -130,13 +131,13 @@ void showVideoDialog(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 5),
         InputField('Title (optional)', titleController, isOptional: true),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         InputField('YouTube URL', urlController),
-        const SizedBox(height: 16),
-        const Text(
+        const SizedBox(height: 18),
+        const InputTitle(
           'Select Tags                                                                            ',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 8),
         Wrap(

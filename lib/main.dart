@@ -166,56 +166,50 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'Your Yoga Videos (${_filteredVideos.length})',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _selectedFilterTags.clear();
+                          });
+                        },
+                        child: Text(
+                          _selectedFilterTags.isEmpty ? '' : 'Clear Filters',
                         ),
                       ),
-                      if (_selectedFilterTags.isNotEmpty)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedFilterTags.clear();
-                            });
-                          },
-                          child: const Text('Clear Filters'),
-                        ),
                     ],
                   ),
 
                   // Tag Filter Bar
                   if (_database.tags.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: SizedBox(
-                        height: 42,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: _database.tags.map((tag) {
-                            final isSelected = _selectedFilterTags.contains(
-                              tag,
-                            );
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: FilterChip(
-                                label: Text(tag),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedFilterTags.add(tag);
-                                    } else {
-                                      _selectedFilterTags.remove(tag);
-                                    }
-                                  });
-                                },
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                    SizedBox(
+                      height: 42,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: _database.tags.map((tag) {
+                          final isSelected = _selectedFilterTags.contains(tag);
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: FilterChip(
+                              label: Text(tag),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedFilterTags.add(tag);
+                                  } else {
+                                    _selectedFilterTags.remove(tag);
+                                  }
+                                });
+                              },
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                 ],
