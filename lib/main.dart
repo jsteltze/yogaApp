@@ -99,6 +99,20 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   Widget build(BuildContext context) {
     return createScaffold(
       context: context,
+      actions: [
+        createPopupMenu([
+          DialogAction(
+            title: 'View Logs',
+            icon: Icons.list_alt,
+            onPressed: () => showLogsDialog(context),
+          ),
+          DialogAction(
+            title: 'App Info',
+            icon: Icons.info_outline,
+            onPressed: () => showAppInfoDialog(context),
+          ),
+        ]),
+      ],
       child: Column(
         children: [
           // Video Player Section at top if a video is selected

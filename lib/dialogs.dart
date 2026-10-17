@@ -261,3 +261,165 @@ void showVideoDialog(
     ),
   );
 }
+
+void showAppInfoDialog(BuildContext context) {
+  if (!context.mounted) return;
+  openDialog(
+    context,
+    title: 'App Info',
+    titleIcon: Icons.info_outline,
+    child: (ctx, setDialogState, toggleMainAction) => Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        InfoPanel(
+          Text(
+            'Welcome to ${Globals.packageInfo.appName}!\nThis is an Opensource, Free-to-use Android-App for Youtube Yoga videos.\nAll data is stored locally on your device. No Internet connection required.',
+          ),
+        ),
+        ExpansionTile(
+          title: const Text('Version'),
+          expandedAlignment: Alignment.topLeft,
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              Globals.packageInfo.appName,
+              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+            ),
+            Table(
+              columnWidths: const <int, TableColumnWidth>{
+                0: IntrinsicColumnWidth(),
+                1: FlexColumnWidth(),
+              },
+              children: [
+                InfoRow(
+                  'Version: ',
+                  '${Globals.packageInfo.version}, ${DateFormat('MMMM yyyy').format(DateTime.fromMillisecondsSinceEpoch(lastAppBuildTimestamp))}',
+                ).build(context),
+                InfoRow(
+                  'Package: ',
+                  Globals.packageInfo.packageName,
+                ).build(context),
+                InfoRow(
+                  'Installed: ',
+                  Globals.packageInfo.installTime?.toHumanString() ?? '-',
+                ).build(context),
+                InfoRow(
+                  'Updated: ',
+                  Globals.packageInfo.updateTime?.toHumanString() ?? '-',
+                ).build(context),
+                InfoRow(
+                  'Sources: ',
+                  '',
+                  contentWidget: const Link(
+                    'Github',
+                    'https://github.com/jsteltze/swiss_tournament.git',
+                  ),
+                ).build(context),
+                InfoRow(
+                  'Author: ',
+                  '',
+                  contentWidget: const Link(
+                    'Johannes Steltzer',
+                    'https://github.com/jsteltze',
+                  ),
+                ).build(context),
+              ],
+            ),
+          ],
+        ),
+        ExpansionTile(
+          title: const Text('Libraries'),
+          children: [
+            Table(
+              columnWidths: const <int, TableColumnWidth>{
+                0: IntrinsicColumnWidth(),
+                1: FlexColumnWidth(),
+              },
+              children: [
+                InfoRow('Language: ', 'Flutter 3 / Dart SDK 3').build(context),
+                InfoRow(
+                  'Packages: ',
+                  'package_info_plus, expandable_search_bar_plus, url_launcher',
+                ).build(context),
+                InfoRow('Design: ', 'Material v3').build(context),
+                InfoRow('Icons: ', 'Cupertino Icons').build(context),
+              ],
+            ),
+          ],
+        ),
+        ExpansionTile(
+          title: const Text('License Info'),
+          children: [
+            StyledText(
+              'I want this App to remain open-source (copyleft). Thus this program and all of its sourcecode is licensed under **GPL v3**\nFeel free to use, modify and redistribute it under the terms of this license.',
+              style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+            ),
+            Table(
+              columnWidths: const <int, TableColumnWidth>{
+                0: IntrinsicColumnWidth(),
+                1: FlexColumnWidth(),
+              },
+              children: [
+                InfoRow(
+                  'License text: ',
+                  '',
+                  contentWidget: const Link(
+                    'gnu.org/licenses/gpl-3.0',
+                    'https://www.gnu.org/licenses/gpl-3.0.html',
+                  ),
+                ).build(context),
+                InfoRow('App Icon: ', 'AI generated').build(context),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+    closeButtonTitle: 'Close',
+  );
+}
+
+void showLogsDialog(BuildContext context) {
+  final logs = FileLogger.getLogs();
+  openDialog(
+    context,
+    title: 'Logs',
+    titleIcon: Icons.list_alt,
+    child: (ctx, setDialogState, toggleMainAction) => Text(
+      logs,
+      style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+    ),
+    closeButtonTitle: null,
+    mainAction: DialogAction(
+      title: 'Close',
+      onPressed: () => Navigator.pop(context),
+    ),
+    secondaryActions: [
+      DialogAction(
+        title: 'Clear',
+        onPressed: () {
+          FileLogger.clearLogs();
+          showSnackbar(context, 'Logs removed');
+          Navigator.pop(context);
+        },
+        isDestructive: true,
+        icon: deleteIcon,
+      ),
+    ],
+  );
+}
+
+void showErrorDialog(BuildContext context, String msg) {
+  openDialog(
+    context,
+    title: 'Error',
+    titleIcon: Icons.error_outline,
+    child: (ctx, setDialogState, toggleMainAction) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [const Text('An error occurred:'), Warning(msg)],
+    ),
+    closeButtonTitle: 'Close',
+  );
+}
