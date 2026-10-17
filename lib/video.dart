@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:js_flutter/utils/logger.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class YogaVideo {
@@ -56,6 +57,7 @@ class YogaVideo {
   }
 
   Future<String?> downloadThumbnailAsBase64() async {
+    FileLogger.log('Download thumbnail for "$videoId"');
     try {
       final url = Uri.parse(getThumbnailUrl());
       final response = await http.get(url);

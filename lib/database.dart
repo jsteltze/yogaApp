@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:js_flutter/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yoga_app/video.dart';
 
@@ -8,6 +9,7 @@ class Database {
   List<String> tags = [];
 
   Future<void> loadData() async {
+    FileLogger.log('Loading data...');
     final prefs = await SharedPreferences.getInstance();
 
     // Load tags
@@ -32,6 +34,8 @@ class Database {
         // handle error
       }
     }
+
+    FileLogger.log('Loaded ${videos.length} videos and ${tags.length} tags.');
 
     // Cache missing thumbnails in background for stored items
     for (var video in videos) {
