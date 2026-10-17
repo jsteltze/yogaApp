@@ -66,7 +66,7 @@ packages:
     source: hosted
     version: "3.0.7"
   cupertino_icons:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: cupertino_icons
       sha256: b7cc2390aac296c083bea762859413eb1cf5b630c70e0c7e4d831018f762a8b2
@@ -198,7 +198,7 @@ packages:
       path: "../js_flutter"
       relative: true
     source: path
-    version: "0.0.3"
+    version: "0.0.4"
   leak_tracker:
     dependency: transitive
     description:
@@ -448,7 +448,7 @@ packages:
     source: hosted
     version: "1.1.1"
   shared_preferences:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences
       sha256: "1e85e0dccf5b4a016077fea7dfbb4a7cb39c759ac1596fcf60c06deadb7da91f"
