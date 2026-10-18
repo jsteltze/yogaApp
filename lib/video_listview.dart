@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:js_flutter/components/badge.dart';
 import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
@@ -37,7 +38,7 @@ ListView createListView(
                   color: Theme.of(context).colorScheme.primary,
                   width: 2,
                 )
-              : BorderSide.none,
+              : .none,
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.all(8),
@@ -48,13 +49,13 @@ ListView createListView(
                     base64Decode(video.thumbnailBase64!),
                     width: 80,
                     height: 60,
-                    fit: BoxFit.cover,
+                    fit: .cover,
                   )
                 : Image.network(
                     video.getThumbnailUrl(),
                     width: 80,
                     height: 60,
-                    fit: BoxFit.cover,
+                    fit: .cover,
                     errorBuilder: (context, error, stackTrace) => SizedBox(
                       width: 80,
                       height: 60,
@@ -65,20 +66,20 @@ ListView createListView(
           title: Text(
             video.title,
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            overflow: .ellipsis,
             style: TextStyle(
-              fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
+              fontWeight: isPlaying ? .bold : .normal,
               color: isPlaying ? Theme.of(context).colorScheme.primary : null,
             ),
           ),
           subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: .start,
             children: [
               const SizedBox(height: 2),
               Text(
                 video.url,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow: .ellipsis,
                 style: Theme.of(context).textTheme.labelSmall!
                     .copyWith(color: Theme.of(context).colorScheme.secondary),
               ),
@@ -87,32 +88,7 @@ ListView createListView(
                 Wrap(
                   spacing: 4.0,
                   runSpacing: 2.0,
-                  children: tags
-                      .map(
-                        (tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .secondaryContainer
-                                .withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSecondaryContainer,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
+                  children: tags.map((tag) => MyBadge(tag)).toList(),
                 ),
               ],
             ],

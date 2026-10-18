@@ -1,17 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:js_flutter/components/info_panel.dart';
 import 'package:js_flutter/components/info_table_row.dart';
 import 'package:js_flutter/components/input_field.dart';
 import 'package:js_flutter/components/input_title.dart';
 import 'package:js_flutter/components/link.dart';
 import 'package:js_flutter/components/styled_text.dart';
-import 'package:js_flutter/components/warning.dart';
-import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
-import 'package:js_flutter/utils/logger.dart';
 import 'package:js_flutter/utils/package_info_global.dart';
 import 'package:js_flutter/utils/snackbar_utils.dart';
 import 'package:js_flutter/utils/timestampx.dart';
@@ -63,14 +59,14 @@ void selectRandomVideo(
 
           return AlertDialog(
             content: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: .min,
               children: [
                 const SizedBox(height: 16),
                 const CircularProgressIndicator(),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   '🎲 Rolling for a random video...',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -83,14 +79,10 @@ void selectRandomVideo(
                   ),
                   child: Text(
                     currentDisplayVideo.title,
-                    textAlign: TextAlign.center,
+                    textAlign: .center,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                    overflow: .ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -128,8 +120,8 @@ void showVideoDialog(
     title: isEditing ? 'Edit YouTube Video' : 'Add YouTube Video',
     titleIcon: Icons.video_library,
     child: (ctx, setDialogState, toggleMainAction) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: .min,
+      crossAxisAlignment: .start,
       children: [
         const SizedBox(height: 5),
         InputField('Title (optional)', titleController, isOptional: true),
@@ -143,7 +135,7 @@ void showVideoDialog(
         Wrap(
           spacing: 6.0,
           runSpacing: 4.0,
-          crossAxisAlignment: WrapCrossAlignment.center,
+          crossAxisAlignment: .center,
           children: [
             ...localAvailableTags.map((tag) {
               final isSelected = selectedTags.contains(tag);
@@ -282,9 +274,9 @@ void showAppInfoDialog(BuildContext context) {
     title: 'App Info',
     titleIcon: Icons.info_outline,
     child: (ctx, setDialogState, toggleMainAction) => Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: .center,
+      mainAxisSize: .min,
+      crossAxisAlignment: .start,
       children: <Widget>[
         InfoPanel(
           Text(
@@ -293,8 +285,8 @@ void showAppInfoDialog(BuildContext context) {
         ),
         ExpansionTile(
           title: const Text('Version'),
-          expandedAlignment: Alignment.topLeft,
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          expandedAlignment: .topLeft,
+          expandedCrossAxisAlignment: .start,
           children: [
             Text(
               Globals.packageInfo.appName,
@@ -308,7 +300,7 @@ void showAppInfoDialog(BuildContext context) {
               children: [
                 InfoRow(
                   'Version: ',
-                  '${Globals.packageInfo.version}, ${DateFormat('MMMM yyyy').format(DateTime.fromMillisecondsSinceEpoch(lastAppBuildTimestamp))}',
+                  '${Globals.packageInfo.version}, ${DateTime.fromMillisecondsSinceEpoch(lastAppBuildTimestamp).toMMMMYYYY()}',
                 ).build(context),
                 InfoRow(
                   'Package: ',
@@ -389,49 +381,6 @@ void showAppInfoDialog(BuildContext context) {
           ],
         ),
       ],
-    ),
-    closeButtonTitle: 'Close',
-  );
-}
-
-void showLogsDialog(BuildContext context) {
-  final logs = FileLogger.getLogs();
-  openDialog(
-    context,
-    title: 'Logs',
-    titleIcon: Icons.list_alt,
-    child: (ctx, setDialogState, toggleMainAction) => Text(
-      logs,
-      style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
-    ),
-    closeButtonTitle: null,
-    mainAction: DialogAction(
-      title: 'Close',
-      onPressed: () => Navigator.pop(context),
-    ),
-    secondaryActions: [
-      DialogAction(
-        title: 'Clear',
-        onPressed: () {
-          FileLogger.clearLogs();
-          showSnackbar(context, 'Logs removed');
-          Navigator.pop(context);
-        },
-        isDestructive: true,
-        icon: deleteIcon,
-      ),
-    ],
-  );
-}
-
-void showErrorDialog(BuildContext context, String msg) {
-  openDialog(
-    context,
-    title: 'Error',
-    titleIcon: Icons.error_outline,
-    child: (ctx, setDialogState, toggleMainAction) => Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [const Text('An error occurred:'), Warning(msg)],
     ),
     closeButtonTitle: 'Close',
   );

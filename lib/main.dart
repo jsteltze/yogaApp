@@ -8,6 +8,7 @@ import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/components/view_header.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
+import 'package:js_flutter/utils/first_time.dart';
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_listview.dart';
@@ -44,6 +45,16 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
     // Listen to share intents while app is open
     _textSub = init(context, _database, _onSubmitted);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkFirstTime(
+        () => showWelcomeDialog(
+          context,
+          Icons.video_collection_outlined,
+          'Thank you for using the Yoga Video Manager App!\n\nA simple video manager for Yoga videos on Android.',
+        ),
+      );
+    });
   }
 
   void _onSubmitted(YogaVideo video) {
@@ -119,7 +130,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           // Video Player Section at top if a video is selected
           if (_currentVideo != null && _controller != null)
             Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: .start,
               children: [
                 YoutubePlayer(controller: _controller!),
                 Padding(
@@ -128,15 +139,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     vertical: 8.0,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: .spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
                           _currentVideo!.title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       IconButton(
@@ -165,8 +173,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
               Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: .spaceBetween,
+                    crossAxisAlignment: .center,
                     children: [
                       Text(
                         'Your Yoga Videos (${_filteredVideos.length})',
@@ -190,7 +198,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     SizedBox(
                       height: 42,
                       child: ListView(
-                        scrollDirection: Axis.horizontal,
+                        scrollDirection: .horizontal,
                         children: _database.tags.map((tag) {
                           final isSelected = _selectedFilterTags.contains(tag);
                           return Padding(
@@ -251,7 +259,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: .end,
           spacing: 16,
           children: [
             if (_database.videos.isNotEmpty)
