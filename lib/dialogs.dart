@@ -40,7 +40,7 @@ void selectRandomVideo(
                 setDialogState(() {
                   displayIndex = random.nextInt(filtered.length);
                 });
-                Future.delayed(const Duration(milliseconds: 120), roll);
+                Future.delayed(const Duration(milliseconds: 300), roll);
               }
             } else {
               final winningVideo = filtered[random.nextInt(filtered.length)];
@@ -53,7 +53,7 @@ void selectRandomVideo(
           }
 
           // Kick off rolling animation
-          Future.delayed(const Duration(milliseconds: 120), roll);
+          Future.delayed(const Duration(milliseconds: 300), roll);
 
           final currentDisplayVideo = filtered[displayIndex];
 
