@@ -12,6 +12,8 @@ class YogaVideo {
   final String videoId;
   final List<String> tags;
   final String? thumbnailBase64;
+  DateTime? lastPlayed;
+  int count;
 
   YogaVideo({
     required this.id,
@@ -20,6 +22,8 @@ class YogaVideo {
     required this.videoId,
     required this.tags,
     this.thumbnailBase64,
+    this.lastPlayed,
+    required this.count,
   });
 
   Map<String, dynamic> toJson() => {
@@ -29,6 +33,8 @@ class YogaVideo {
     'videoId': videoId,
     'tags': tags,
     'thumbnailBase64': thumbnailBase64,
+    if (lastPlayed != null) 'lastPlayed': lastPlayed?.millisecondsSinceEpoch,
+    'count': count,
   };
 
   factory YogaVideo.fromJson(Map<String, dynamic> json) => YogaVideo(
@@ -38,6 +44,10 @@ class YogaVideo {
     videoId: json['videoId'] ?? '',
     tags: List<String>.from(json['tags'] ?? []),
     thumbnailBase64: json['thumbnailBase64'],
+    lastPlayed: json['lastPlayed'] != null
+        ? DateTime.fromMillisecondsSinceEpoch(json['lastPlayed'])
+        : null,
+    count: json['count'] ?? 0,
   );
 
   static String? extractVideoId(String url) {

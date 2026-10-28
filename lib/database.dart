@@ -51,6 +51,8 @@ class Database {
                 videoId: videos[index].videoId,
                 tags: videos[index].tags,
                 thumbnailBase64: base64Str,
+                count: videos[index].count,
+                lastPlayed: videos[index].lastPlayed,
               );
             }
           }

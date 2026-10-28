@@ -236,6 +236,8 @@ void showVideoDialog(
               videoId: videoId,
               tags: selectedTags.toList(),
               thumbnailBase64: thumbBase64,
+              count: video.count,
+              lastPlayed: video.lastPlayed,
             );
             db.videos[index] = editVideo;
           }
@@ -248,6 +250,7 @@ void showVideoDialog(
             videoId: videoId,
             tags: selectedTags.toList(),
             thumbnailBase64: thumbBase64,
+            count: 0,
           );
           db.videos.insert(0, editVideo);
         }

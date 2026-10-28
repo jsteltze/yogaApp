@@ -86,6 +86,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     );
     setState(() {
       _currentVideo = video;
+      _currentVideo?.count++;
+      _currentVideo?.lastPlayed = DateTime.now();
     });
   }
 
