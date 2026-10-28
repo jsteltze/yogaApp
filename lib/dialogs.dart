@@ -7,12 +7,13 @@ import 'package:js_flutter/components/input_field.dart';
 import 'package:js_flutter/components/input_title.dart';
 import 'package:js_flutter/components/link.dart';
 import 'package:js_flutter/components/styled_text.dart';
+import 'package:js_flutter/utils/datetimex.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:js_flutter/utils/package_info_global.dart';
 import 'package:js_flutter/utils/snackbar_utils.dart';
-import 'package:js_flutter/utils/timestampx.dart';
 import 'package:yoga_app/generated/app_build_timestamp.g.dart';
 import 'package:yoga_app/video.dart';
+import 'package:yoga_app/video_card.dart';
 
 import 'database.dart';
 
@@ -24,74 +25,118 @@ void selectRandomVideo(
   if (filtered.isEmpty) return;
 
   final random = Random();
+  final stopwatch = Stopwatch()..start();
+  YogaVideo? currentDisplayVideo;
+  bool running = true;
 
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          int displayIndex = random.nextInt(filtered.length);
-          final stopwatch = Stopwatch()..start();
+  openDialog(
+    context,
+    titleIcon: Icons.shuffle,
+    title: 'Rolling for a random video',
+    child: (dialogContext, setDialogState, toggleMainAction) {
+      int displayIndex = random.nextInt(filtered.length);
 
-          void roll() {
-            if (stopwatch.elapsedMilliseconds < 3000) {
-              if (Navigator.canPop(dialogContext)) {
-                setDialogState(() {
-                  displayIndex = random.nextInt(filtered.length);
-                });
-                Future.delayed(const Duration(milliseconds: 300), roll);
-              }
-            } else {
-              final winningVideo = filtered[random.nextInt(filtered.length)];
-              if (Navigator.canPop(dialogContext)) {
-                Navigator.pop(dialogContext);
-                playVideo(winningVideo);
-                showSnackbar(context, '🎲 Selected: ${winningVideo.title}');
-              }
-            }
+      void roll() {
+        if (stopwatch.elapsedMilliseconds < 3000) {
+          if (Navigator.canPop(context)) {
+            setDialogState(() {
+              displayIndex = random.nextInt(filtered.length);
+            });
+
+            Future.delayed(const Duration(milliseconds: 500), roll);
           }
+        } else {
+          if (Navigator.canPop(context)) {
+            setDialogState(() {
+              stopwatch.stop();
+              running = false;
+              toggleMainAction(true);
+            });
+          }
+        }
+      }
 
-          // Kick off rolling animation
-          Future.delayed(const Duration(milliseconds: 300), roll);
+      if (currentDisplayVideo == null) {
+        // Kick off rolling animation
+        Future.delayed(const Duration(milliseconds: 300), roll);
+      }
+      currentDisplayVideo = filtered[displayIndex];
 
-          final currentDisplayVideo = filtered[displayIndex];
-
-          return AlertDialog(
-            content: Column(
-              mainAxisSize: .min,
-              children: [
-                const SizedBox(height: 16),
-                const CircularProgressIndicator(),
-                const SizedBox(height: 24),
-                Text(
-                  '🎲 Rolling for a random video...',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
+      return Column(
+        mainAxisSize: .min,
+        children: [
+          if (running) const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          if (currentDisplayVideo != null)
+            SizedBox(
+              height: 250,
+              child: Column(
+                children: [
+                  AnimatedSwitcher(
+                    duration: Duration(milliseconds: 200),
+                    transitionBuilder: (child, animation) {
+                      final rotate = Tween(
+                        begin: pi,
+                        end: 0.0,
+                      ).animate(animation);
+                      return AnimatedBuilder(
+                        animation: rotate,
+                        child: child,
+                        builder: (context, child) {
+                          final isUnder =
+                              (ValueKey(child) != ValueKey(animation.value));
+                          var tilt = (animation.value - 0.5).abs() - 0.5;
+                          tilt *= isUnder ? -0.003 : 0.003;
+                          final angle = isUnder
+                              ? min(rotate.value, pi / 2)
+                              : rotate.value;
+                          return Transform(
+                            transform: Matrix4.rotationY(angle)
+                              ..setEntry(3, 0, tilt),
+                            alignment: Alignment.center,
+                            child: child,
+                          );
+                        },
+                      );
+                    },
+                    child: VideoCard(
+                      key: ValueKey(currentDisplayVideo!.id),
+                      video: currentDisplayVideo!,
+                      isPlaying: false,
+                    ),
                   ),
-                  child: Text(
-                    currentDisplayVideo.title,
-                    textAlign: .center,
-                    maxLines: 2,
-                    overflow: .ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                  Spacer(),
+                ],
+              ),
             ),
-          );
-        },
+        ],
       );
     },
+    secondaryActions: [
+      DialogAction(
+        title: 'roll again',
+        icon: Icons.replay,
+        onPressed: (setDialogState) => setDialogState?.call(() {
+          stopwatch
+            ..reset()
+            ..start();
+          running = true;
+          currentDisplayVideo = null;
+        }),
+      ),
+    ],
+    mainAction: DialogAction(
+      title: 'Play',
+      icon: Icons.play_arrow,
+      onPressed: (_) {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        playVideo(currentDisplayVideo);
+      },
+    ),
+    mainActionEnabled: false,
+    closeButtonTitle: 'Close',
   );
 }
 
@@ -117,6 +162,7 @@ void showVideoDialog(
 
   openDialog(
     context,
+    width: defaultFormularDialogWidth,
     title: isEditing ? 'Edit YouTube Video' : 'Add YouTube Video',
     titleIcon: Icons.video_library,
     child: (ctx, setDialogState, toggleMainAction) => Column(
@@ -203,7 +249,7 @@ void showVideoDialog(
     ),
     mainAction: DialogAction(
       title: 'Save',
-      onPressed: () async {
+      onPressed: (_) async {
         final dialogContext = context;
         final url = urlController.text.trim();
         final videoId = YogaVideo.extractVideoId(url);

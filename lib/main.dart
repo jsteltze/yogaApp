@@ -119,12 +119,12 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           DialogAction(
             title: 'View Logs',
             icon: Icons.list_alt,
-            onPressed: () => showLogsDialog(context),
+            onPressed: (_) => showLogsDialog(context),
           ),
           DialogAction(
             title: 'App Info',
             icon: Icons.info_outline,
-            onPressed: () => showAppInfoDialog(context),
+            onPressed: (_) => showAppInfoDialog(context),
           ),
         ]),
       ],
@@ -256,7 +256,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     icon: Icons.filter_alt_off,
                     actionButton: DialogAction(
                       title: 'Clear Filters',
-                      onPressed: () {
+                      onPressed: (_) {
                         setState(() {
                           _selectedFilterTags.clear();
                         });
