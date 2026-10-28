@@ -1,12 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:js_flutter/components/badge.dart';
 import 'package:js_flutter/components/list_view_scroll_indicator.dart';
-import 'package:js_flutter/components/popup_menu.dart';
-import 'package:js_flutter/icons.dart';
-import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:yoga_app/video.dart';
+import 'package:yoga_app/video_card.dart';
 
 import 'database.dart';
 import 'dialogs.dart';
@@ -24,95 +19,18 @@ Widget createListView(
     child: ListView.builder(
       padding: const EdgeInsets.only(bottom: 80),
       itemCount: filteredVideos.length,
-      itemBuilder: (context, index) {
-        final video = filteredVideos[index];
-        final tags = video.tags;
-        tags.sort();
-        final isPlaying = currentVideo?.id == video.id;
-
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: isPlaying
-                ? BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  )
-                : .none,
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(8),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: video.thumbnailBase64 != null
-                  ? Image.memory(
-                      base64Decode(video.thumbnailBase64!),
-                      width: 80,
-                      height: 60,
-                      fit: .cover,
-                    )
-                  : Image.network(
-                      video.getThumbnailUrl(),
-                      width: 80,
-                      height: 60,
-                      fit: .cover,
-                      errorBuilder: (context, error, stackTrace) => SizedBox(
-                        width: 80,
-                        height: 60,
-                        child: const Icon(Icons.videocam),
-                      ),
-                    ),
-            ),
-            title: Text(
-              video.title,
-              maxLines: 1,
-              overflow: .ellipsis,
-              style: TextStyle(
-                fontWeight: isPlaying ? .bold : .normal,
-                color: isPlaying ? Theme.of(context).colorScheme.primary : null,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: .start,
-              children: [
-                const SizedBox(height: 2),
-                Text(
-                  video.url,
-                  maxLines: 1,
-                  overflow: .ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall!
-                      .copyWith(color: Theme.of(context).colorScheme.secondary),
-                ),
-                if (tags.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 4.0,
-                    runSpacing: 2.0,
-                    children: tags.map((tag) => MyBadge(tag)).toList(),
-                  ),
-                ],
-              ],
-            ),
-            trailing: createPopupMenu([
-              DialogAction(
-                title: 'Edit',
-                icon: editIcon,
-                onPressed: () =>
-                    showVideoDialog(context, db, onSubmitted, video: video),
-              ),
-              DialogAction(
-                title: 'Delete',
-                icon: deleteIcon,
-                isDestructive: true,
-                onPressed: () => deleteVideo(video),
-              ),
-            ]),
-            onTap: () => playVideo(video),
-          ),
-        );
-      },
+      itemBuilder: (context, index) => VideoCard(
+        video: filteredVideos[index],
+        isPlaying: currentVideo?.id == filteredVideos[index].id,
+        onEdit: () => showVideoDialog(
+          context,
+          db,
+          onSubmitted,
+          video: filteredVideos[index],
+        ),
+        onDelete: () => deleteVideo(filteredVideos[index]),
+        onTap: () => playVideo(filteredVideos[index]),
+      ),
     ),
   );
 }
