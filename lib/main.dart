@@ -181,22 +181,24 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     crossAxisAlignment: .center,
                     children: [
                       Padding(
-                        padding: EdgeInsetsGeometry.only(left: 16),
+                        padding: EdgeInsetsGeometry.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         child: Text(
                           'Your Yoga Videos (${_filteredVideos.length})',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedFilterTags.clear();
-                          });
-                        },
-                        child: Text(
-                          _selectedFilterTags.isEmpty ? '' : 'Clear Filters',
+                      if (_selectedFilterTags.isNotEmpty)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedFilterTags.clear();
+                            });
+                          },
+                          child: Text('Clear Filters'),
                         ),
-                      ),
                     ],
                   ),
 

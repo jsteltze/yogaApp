@@ -11,3 +11,7 @@ This project is a Flutter application written in Dart.
 - Run `flutter run` to run the app.
 - To run in release mode: `flutter run --release`
 - To build release appbundle: `flutter build appbundle --release`
+
+## TODO
+
+- Sortier-Funktion
