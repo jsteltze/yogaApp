@@ -261,6 +261,13 @@ void showVideoDialog(
           );
           return;
         }
+
+        // check for duplicates
+        if (db.videos.any((v) => v.videoId == videoId)) {
+          showSnackbar(context, 'Video already exists.', true);
+          return;
+        }
+
         final title = titleController.text.trim();
 
         // Download thumbnail as base64 for local storage
