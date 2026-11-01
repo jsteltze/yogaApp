@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:js_flutter/components/badge.dart';
 import 'package:js_flutter/components/info_panel.dart';
 import 'package:js_flutter/components/info_table_row.dart';
 import 'package:js_flutter/components/input_field.dart';
@@ -20,6 +21,7 @@ import 'database.dart';
 void selectRandomVideo(
   BuildContext context,
   List<YogaVideo> filtered,
+  Set<String> selectedTags,
   Function playVideo,
 ) {
   if (filtered.isEmpty) return;
@@ -65,6 +67,16 @@ void selectRandomVideo(
       return Column(
         mainAxisSize: .min,
         children: [
+          if (selectedTags.isNotEmpty)
+            Wrap(
+              alignment: .center,
+              crossAxisAlignment: .center,
+              spacing: 5,
+              children: [
+                Text('Selected tags: '),
+                ...selectedTags.map((s) => MyBadge(s, variant: .secondary)),
+              ],
+            ),
           if (running) const CircularProgressIndicator(),
           const SizedBox(height: 16),
           if (currentDisplayVideo != null)
@@ -263,7 +275,7 @@ void showVideoDialog(
         }
 
         // check for duplicates
-        if (db.videos.any((v) => v.videoId == videoId)) {
+        if (!isEditing && db.videos.any((v) => v.videoId == videoId)) {
           showSnackbar(context, 'Video already exists.', true);
           return;
         }
@@ -312,6 +324,7 @@ void showVideoDialog(
           if (!db.tags.contains(tag)) {
             db.tags.add(tag);
           }
+          db.tags.sort();
         }
         db.saveData();
         onSubmitted(editVideo);
