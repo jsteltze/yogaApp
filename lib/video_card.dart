@@ -11,8 +11,8 @@ import 'package:yoga_app/video.dart';
 class VideoCard extends StatelessWidget {
   final YogaVideo video;
   final bool isPlaying;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  final Function(void Function(void Function())?)? onEdit;
+  final Function(void Function(void Function())?)? onDelete;
   final VoidCallback? onTap;
 
   const VideoCard({
@@ -112,16 +112,12 @@ class VideoCard extends StatelessWidget {
         trailing: onEdit == null || onDelete == null
             ? null
             : createPopupMenu([
-                DialogAction(
-                  title: 'Edit',
-                  icon: editIcon,
-                  onPressed: (_) => onEdit,
-                ),
+                DialogAction(title: 'Edit', icon: editIcon, onPressed: onEdit),
                 DialogAction(
                   title: 'Delete',
                   icon: deleteIcon,
                   isDestructive: true,
-                  onPressed: (_) => onDelete,
+                  onPressed: onDelete,
                 ),
               ]),
         onTap: onTap,

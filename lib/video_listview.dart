@@ -22,13 +22,13 @@ Widget createListView(
       itemBuilder: (context, index) => VideoCard(
         video: filteredVideos[index],
         isPlaying: currentVideo?.id == filteredVideos[index].id,
-        onEdit: () => showVideoDialog(
+        onEdit: (_) => showVideoDialog(
           context,
           db,
           onSubmitted,
           video: filteredVideos[index],
         ),
-        onDelete: () => deleteVideo(filteredVideos[index]),
+        onDelete: (_) => deleteVideo(filteredVideos[index]),
         onTap: () => playVideo(filteredVideos[index]),
       ),
     ),
