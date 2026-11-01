@@ -77,7 +77,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     _controller?.close();
     _controller = YoutubePlayerController.fromVideoId(
       videoId: video.videoId,
-      autoPlay: true,
+      autoPlay: false,
       params: const YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: true,
@@ -89,6 +89,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       _currentVideo?.count++;
       _currentVideo?.lastPlayed = DateTime.now();
     });
+    _database.saveData();
   }
 
   @override
@@ -131,44 +132,49 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       child: Column(
         children: [
           // Video Player Section at top if a video is selected
-          if (_currentVideo != null && _controller != null)
-            Column(
-              crossAxisAlignment: .start,
-              children: [
-                YoutubePlayer(controller: _controller!),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 8.0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: .spaceBetween,
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) =>
+                SizeTransition(sizeFactor: animation, child: child),
+            child: _controller != null
+                ? Column(
+                    key: ValueKey<bool>(_currentVideo != null),
+                    crossAxisAlignment: .start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          _currentVideo!.title,
-                          style: Theme.of(context).textTheme.titleMedium,
+                      YoutubePlayer(controller: _controller!),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 8.0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: .spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _currentVideo!.title,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                _controller?.close();
+                                setState(() {
+                                  _controller = null;
+                                  _currentVideo = null;
+                                });
+                              },
+                              tooltip: 'Close player',
+                            ),
+                          ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _controller?.close();
-                          setState(() {
-                            _controller = null;
-                            _currentVideo = null;
-                          });
-                        },
-                        tooltip: 'Close player',
-                      ),
+                      const Divider(height: 1),
                     ],
-                  ),
-                ),
-                const Divider(height: 1),
-              ],
-            )
-          else
-            const SizedBox.shrink(),
+                  )
+                : const SizedBox.shrink(),
+          ),
 
           // Video List Header & Count
           if (_database.videos.isNotEmpty)
@@ -183,7 +189,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       Padding(
                         padding: EdgeInsetsGeometry.symmetric(
                           horizontal: 16,
-                          vertical: 10,
+                          vertical: 12,
                         ),
                         child: Text(
                           'Your Yoga Videos (${_filteredVideos.length})',
@@ -290,6 +296,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     : () => selectRandomVideo(
                         context,
                         _filteredVideos,
+                        _selectedFilterTags,
                         _playVideo,
                       ),
                 icon: const Icon(Icons.shuffle),
