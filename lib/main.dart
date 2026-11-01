@@ -12,7 +12,7 @@ import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:js_flutter/utils/first_time.dart';
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
-import 'package:yoga_app/video_listview.dart';
+import 'package:yoga_app/video_card.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'dialogs.dart';
@@ -31,17 +31,22 @@ class YogaVideoScreen extends StatefulWidget {
 
 class _YogaVideoScreenState extends State<YogaVideoScreen> {
   final Set<String> _selectedFilterTags = {};
+  late List<YogaVideo> _currentlyListed = [];
   YoutubePlayerController? _controller;
   YogaVideo? _currentVideo;
   bool _isLoading = true;
   StreamSubscription? _textSub;
   final Database _database = Database();
+  final listKey = GlobalKey<AnimatedListState>();
 
   @override
   void initState() {
     super.initState();
     _database.loadData().then((_) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _currentlyListed = _database.videos;
+      });
     });
 
     // Listen to share intents while app is open
@@ -58,10 +63,40 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     });
   }
 
+  void _doFiltering() {
+    print('currently Listed: ${_currentlyListed}');
+    print('filtered: ${_filteredVideos}');
+
+    // remove due to filter
+    for (int i = 0; i < _currentlyListed.length; i++) {
+      if (!_filteredVideos.contains(_currentlyListed[i])) {
+        int index = _database.videos.indexOf(_currentlyListed[i]);
+        print('remove Index $index');
+        listKey.currentState!.removeItem(
+          index,
+          (context, animation) =>
+              VideoCard(animation: animation, video: _database.videos[index]),
+        );
+      }
+    }
+
+    // add due to filter
+    for (int i = 0; i < _filteredVideos.length; i++) {
+      if (!_currentlyListed.contains(_filteredVideos[i])) {
+        int index = _database.videos.indexOf(_filteredVideos[i]);
+        print('remove Index $index');
+        listKey.currentState!.insertItem(index);
+      }
+    }
+
+    _currentlyListed = _filteredVideos;
+  }
+
   void _onSubmitted(YogaVideo video) {
-    setState(() {
-      //_currentVideo = video;
-    });
+    setState(() {});
+    int newIndex = 0;
+    listKey.currentState!.insertItem(newIndex);
+    _currentlyListed.insert(newIndex, video);
   }
 
   List<YogaVideo> get _filteredVideos {
@@ -69,7 +104,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       return _database.videos;
     }
     return _database.videos.where((video) {
-      return video.tags.any((tag) => _selectedFilterTags.contains(tag));
+      return (video.tags.any((tag) => _selectedFilterTags.contains(tag)));
     }).toList();
   }
 
@@ -100,15 +135,22 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   }
 
   void _deleteVideo(YogaVideo video) {
-    setState(() {
-      _database.videos.removeWhere((v) => v.id == video.id);
-      if (_currentVideo?.id == video.id) {
+    int index = _database.videos.indexOf(video);
+    _database.videos.removeAt(index);
+
+    if (_currentVideo?.id == video.id) {
+      setState(() {
         _controller?.close();
         _controller = null;
         _currentVideo = null;
-      }
-    });
+      });
+    }
     _database.saveData();
+    _currentlyListed.remove(video);
+    listKey.currentState!.removeItem(
+      index,
+      (context, animation) => VideoCard(animation: animation, video: video),
+    );
   }
 
   @override
@@ -213,6 +255,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     SizedBox(
                       height: 40,
                       child: ListViewScrollIndicator(
+                        scrollDirection: .horizontal,
                         child: ListView(
                           scrollDirection: .horizontal,
                           children: _database.tags.map((tag) {
@@ -240,6 +283,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                       _selectedFilterTags.remove(tag);
                                     }
                                   });
+                                  _doFiltering();
                                 },
                               ),
                             );
@@ -271,14 +315,23 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       },
                     ),
                   )
-                : createListView(
-                    _filteredVideos,
-                    _currentVideo,
-                    _database,
-                    _onSubmitted,
-                    _playVideo,
-                    _deleteVideo,
-                    context,
+                : AnimatedList(
+                    key: listKey,
+                    initialItemCount: _database.videos.length,
+                    itemBuilder: (context, index, animation) => VideoCard(
+                      animation: animation,
+                      video: _currentlyListed[index],
+                      isPlaying:
+                          _currentVideo?.id == _currentlyListed[index].id,
+                      onEdit: (_) => showVideoDialog(
+                        context,
+                        _database,
+                        _onSubmitted,
+                        video: _currentlyListed[index],
+                      ),
+                      onDelete: (_) => _deleteVideo(_currentlyListed[index]),
+                      onTap: () => _playVideo(_currentlyListed[index]),
+                    ),
                   ),
           ),
         ],
