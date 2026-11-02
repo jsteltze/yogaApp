@@ -65,32 +65,21 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   }
 
   void _doFiltering() {
-    print('currently Listed: ${_currentlyListed}');
-    print('filtered: ${_filteredVideos}');
-
     if (listKey.currentState != null) {
-      print("listKey is NOT null");
-
       // remove due to filter
       for (int i = 0; i < _currentlyListed.length; i++) {
         if (!_filteredVideos.contains(_currentlyListed[i])) {
-          int index = _database.videos.indexOf(_currentlyListed[i]);
-          print('remove Index $index');
           listKey.currentState?.removeItem(
             i,
-            (context, animation) =>
-                VideoCard(animation: animation, video: _database.videos[index]),
+            (_, anim) => VideoCard(animation: anim, video: _currentlyListed[i]),
           );
           _currentlyListed.removeAt(i--);
         }
       }
 
-      print('finished removing');
-
       // add due to filter
       for (int i = 0; i < _filteredVideos.length; i++) {
         if (!_currentlyListed.contains(_filteredVideos[i])) {
-          print('insert item');
           listKey.currentState?.insertItem(0);
         }
       }
@@ -107,7 +96,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
         });
       }
     } else {
-      print("listKey is null");
+      // listKey.currentState is null so there was currently no
+      // list displayed -> re-call _doFiltering
       Future.delayed(Duration(milliseconds: 300), () {
         if (mounted) {
           setState(() {
@@ -173,8 +163,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     }
     _database.saveData();
 
-    print('delete: currentlyListed= $_currentlyListed');
-
     listKey.currentState?.removeItem(
       _currentlyListed.indexOf(video),
       (context, animation) => VideoCard(animation: animation, video: video),
@@ -185,6 +173,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     });
 
     if (_currentlyListed.isEmpty && _selectedFilterTags.isNotEmpty) {
+      // show NoDataTile when filter result is empty
       Future.delayed(Duration(milliseconds: 300), () {
         if (mounted) {
           setState(() {
