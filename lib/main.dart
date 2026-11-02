@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:js_flutter/components/app_layout.dart';
 import 'package:js_flutter/components/floating_action_button.dart';
-import 'package:js_flutter/components/list_view_scroll_indicator.dart';
+import 'package:js_flutter/components/list.dart';
 import 'package:js_flutter/components/no_data_tile.dart';
 import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/components/view_header.dart';
@@ -309,44 +309,34 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
                   // Tag Filter Bar
                   if (_database.tags.isNotEmpty)
-                    SizedBox(
-                      height: 40,
-                      child: ListViewScrollIndicator(
-                        scrollDirection: .horizontal,
-                        child: ListView(
-                          scrollDirection: .horizontal,
-                          children: _database.tags.map((tag) {
-                            final isSelected = _selectedFilterTags.contains(
-                              tag,
-                            );
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: FilterChip(
-                                label: Text(
-                                  tag,
-                                  style: Theme.of(context).textTheme.labelSmall!
-                                      .copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSecondaryContainer,
-                                      ),
+                    MyList.of(
+                      fixedHeight: 40,
+                      orientation: .horizontal,
+                      items: _database.tags.map((tag) {
+                        final isSelected = _selectedFilterTags.contains(tag);
+                        return FilterChip(
+                          label: Text(
+                            tag,
+                            style: Theme.of(context).textTheme.labelSmall!
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer,
                                 ),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      _selectedFilterTags.add(tag);
-                                    } else {
-                                      _selectedFilterTags.remove(tag);
-                                    }
-                                    _doFiltering();
-                                  });
-                                },
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedFilterTags.add(tag);
+                              } else {
+                                _selectedFilterTags.remove(tag);
+                              }
+                              _doFiltering();
+                            });
+                          },
+                        );
+                      }).toList(),
                     ),
                 ],
               ),
@@ -361,8 +351,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                   )
                 : _filteredVideos.isEmpty && _showNoDataView
                 ? noDataFiltered
-                : AnimatedList(
-                    key: listKey,
+                : MyList.animated(
+                    listKey: listKey,
                     initialItemCount: _showNoDataView
                         ? 0
                         : _database.videos.length,
