@@ -162,8 +162,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   }
 
   void _deleteVideo(YogaVideo video) {
-    int index = _database.videos.indexOf(video);
-    _database.videos.removeAt(index);
+    _database.videos.remove(video);
 
     if (_currentVideo?.id == video.id) {
       setState(() {
@@ -173,16 +172,27 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       });
     }
     _database.saveData();
-    _currentlyListed.remove(video);
 
-    if (_currentlyListed.isEmpty) {
-      return;
-    }
+    print('delete: currentlyListed= $_currentlyListed');
 
-    listKey.currentState!.removeItem(
-      index,
+    listKey.currentState?.removeItem(
+      _currentlyListed.indexOf(video),
       (context, animation) => VideoCard(animation: animation, video: video),
     );
+
+    setState(() {
+      _currentlyListed.remove(video);
+    });
+
+    if (_currentlyListed.isEmpty && _selectedFilterTags.isNotEmpty) {
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() {
+            _showNoDataView = true;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -280,7 +290,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           vertical: 12,
                         ),
                         child: Text(
-                          'Your Yoga Videos (${_filteredVideos.length})',
+                          'Your Yoga Videos (${_currentlyListed.length})',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
