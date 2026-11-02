@@ -35,6 +35,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
   YoutubePlayerController? _controller;
   YogaVideo? _currentVideo;
   bool _isLoading = true;
+  bool _showNoDataView = false;
   StreamSubscription? _textSub;
   final Database _database = Database();
   final listKey = GlobalKey<AnimatedListState>();
@@ -45,7 +46,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     _database.loadData().then((_) {
       setState(() {
         _isLoading = false;
-        _currentlyListed = _database.videos;
+        _currentlyListed = _database.videos.toList();
       });
     });
 
@@ -67,29 +68,55 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     print('currently Listed: ${_currentlyListed}');
     print('filtered: ${_filteredVideos}');
 
-    // remove due to filter
-    for (int i = 0; i < _currentlyListed.length; i++) {
-      if (!_filteredVideos.contains(_currentlyListed[i])) {
-        int index = _database.videos.indexOf(_currentlyListed[i]);
-        print('remove Index $index');
-        listKey.currentState!.removeItem(
-          index,
-          (context, animation) =>
-              VideoCard(animation: animation, video: _database.videos[index]),
-        );
-      }
-    }
+    if (listKey.currentState != null) {
+      print("listKey is NOT null");
 
-    // add due to filter
-    for (int i = 0; i < _filteredVideos.length; i++) {
-      if (!_currentlyListed.contains(_filteredVideos[i])) {
-        int index = _database.videos.indexOf(_filteredVideos[i]);
-        print('remove Index $index');
-        listKey.currentState!.insertItem(index);
+      // remove due to filter
+      for (int i = 0; i < _currentlyListed.length; i++) {
+        if (!_filteredVideos.contains(_currentlyListed[i])) {
+          int index = _database.videos.indexOf(_currentlyListed[i]);
+          print('remove Index $index');
+          listKey.currentState?.removeItem(
+            i,
+            (context, animation) =>
+                VideoCard(animation: animation, video: _database.videos[index]),
+          );
+          _currentlyListed.removeAt(i--);
+        }
       }
-    }
 
-    _currentlyListed = _filteredVideos;
+      print('finished removing');
+
+      // add due to filter
+      for (int i = 0; i < _filteredVideos.length; i++) {
+        if (!_currentlyListed.contains(_filteredVideos[i])) {
+          print('insert item');
+          listKey.currentState?.insertItem(0);
+        }
+      }
+
+      _currentlyListed = _filteredVideos.toList();
+
+      if (_currentlyListed.isEmpty) {
+        Future.delayed(Duration(milliseconds: 300), () {
+          if (mounted) {
+            setState(() {
+              _showNoDataView = true;
+            });
+          }
+        });
+      }
+    } else {
+      print("listKey is null");
+      Future.delayed(Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() {
+            _showNoDataView = false;
+            _doFiltering();
+          });
+        }
+      });
+    }
   }
 
   void _onSubmitted(YogaVideo video) {
@@ -147,6 +174,11 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     }
     _database.saveData();
     _currentlyListed.remove(video);
+
+    if (_currentlyListed.isEmpty) {
+      return;
+    }
+
     listKey.currentState!.removeItem(
       index,
       (context, animation) => VideoCard(animation: animation, video: video),
@@ -155,6 +187,20 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final noDataFiltered = NoDataTile(
+      text: 'No videos match the selected filters.',
+      icon: Icons.filter_alt_off,
+      actionButton: DialogAction(
+        title: 'Clear Filters',
+        onPressed: (_) {
+          setState(() {
+            _selectedFilterTags.clear();
+            _doFiltering();
+          });
+        },
+      ),
+    );
+
     return createScaffold(
       context: context,
       actions: [
@@ -243,6 +289,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           onPressed: () {
                             setState(() {
                               _selectedFilterTags.clear();
+                              _doFiltering();
                             });
                           },
                           child: Text('Clear Filters'),
@@ -282,8 +329,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                                     } else {
                                       _selectedFilterTags.remove(tag);
                                     }
+                                    _doFiltering();
                                   });
-                                  _doFiltering();
                                 },
                               ),
                             );
@@ -302,22 +349,13 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                     text: 'No videos added yet.',
                     icon: Icons.playlist_add,
                   )
-                : _filteredVideos.isEmpty
-                ? NoDataTile(
-                    text: 'No videos match the selected filters.',
-                    icon: Icons.filter_alt_off,
-                    actionButton: DialogAction(
-                      title: 'Clear Filters',
-                      onPressed: (_) {
-                        setState(() {
-                          _selectedFilterTags.clear();
-                        });
-                      },
-                    ),
-                  )
+                : _filteredVideos.isEmpty && _showNoDataView
+                ? noDataFiltered
                 : AnimatedList(
                     key: listKey,
-                    initialItemCount: _database.videos.length,
+                    initialItemCount: _showNoDataView
+                        ? 0
+                        : _database.videos.length,
                     itemBuilder: (context, index, animation) => VideoCard(
                       animation: animation,
                       video: _currentlyListed[index],
