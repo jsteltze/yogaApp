@@ -121,7 +121,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       return _database.videos;
     }
     return _database.videos.where((video) {
-      return (video.tags.any((tag) => _selectedFilterTags.contains(tag)));
+      return (_selectedFilterTags.every((tag) => video.tags.contains(tag)));
     }).toList();
   }
 
