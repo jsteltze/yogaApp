@@ -203,94 +203,93 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           if (_database.videos.isNotEmpty)
             ViewHeader(
               padding: EdgeInsets.all(0),
-              Column(
+              Row(
+                spacing: 10,
                 children: [
-                  Row(
-                    mainAxisAlignment: .spaceBetween,
-                    crossAxisAlignment: .center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsetsGeometry.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          spacing: 10,
-                          children: [
-                            Text(
-                              'YOUR YOGA VIDEOS:',
-                              style: Theme.of(context).textTheme.titleMedium!
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary,
-                                  ),
-                            ),
-                            MyBadge(
-                              _filtered.length.toString(),
-                              icon: Icon(
-                                _selectedFilterTags.isEmpty
-                                    ? null
-                                    : Icons.filter_alt_outlined,
-                                applyTextScaling: true,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.primary
-                                    .withValues(alpha: 0.6),
-                              ),
-                              variant: .outline,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (_selectedFilterTags.isNotEmpty)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedFilterTags.clear();
-                              list.currentState?.doFiltering(_filtered);
-                            });
-                          },
-                          child: Text('Clear Filters'),
-                        ),
-                    ],
+                  Text(
+                    'YOUR YOGA VIDEOS:',
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: .normal,
+                    ),
                   ),
-
-                  // Tag Filter Bar
-                  if (_database.tags.isNotEmpty)
-                    MyList.of(
-                      fixedHeight: 40,
-                      orientation: .horizontal,
-                      items: _database.tags.map((tag) {
-                        final isSelected = _selectedFilterTags.contains(tag);
-                        return Padding(
-                          padding: EdgeInsetsGeometry.only(right: 8),
-                          child: FilterChip(
-                            label: Text(
-                              tag,
-                              style: Theme.of(context).textTheme.labelSmall!
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondaryContainer,
-                                  ),
-                            ),
-                            selected: isSelected,
-                            onSelected: (selected) {
+                  MyBadge(
+                    _filtered.length.toString(),
+                    icon: Icon(
+                      _selectedFilterTags.isEmpty
+                          ? null
+                          : Icons.filter_alt_outlined,
+                      applyTextScaling: true,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.6),
+                    ),
+                    variant: .primary,
+                  ),
+                ],
+              ),
+              extension: [
+                Divider(),
+                Padding(
+                  padding: .symmetric(horizontal: 15),
+                  child: SizedBox(
+                    height: 40,
+                    child: Row(
+                      mainAxisAlignment: .spaceBetween,
+                      children: [
+                        Text(
+                          'Filter Tags:',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        if (_selectedFilterTags.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
                               setState(() {
-                                if (selected) {
-                                  _selectedFilterTags.add(tag);
-                                } else {
-                                  _selectedFilterTags.remove(tag);
-                                }
+                                _selectedFilterTags.clear();
                                 list.currentState?.doFiltering(_filtered);
                               });
                             },
+                            child: Text('Clear Filters'),
                           ),
-                        );
-                      }).toList(),
+                      ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+
+                if (_database.tags.isNotEmpty)
+                  MyList.of(
+                    fixedHeight: 40,
+                    orientation: .horizontal,
+                    items: _database.tags.map((tag) {
+                      final isSelected = _selectedFilterTags.contains(tag);
+                      return Padding(
+                        padding: EdgeInsetsGeometry.only(right: 8),
+                        child: FilterChip(
+                          label: Text(
+                            tag,
+                            style: Theme.of(context).textTheme.labelSmall!
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer,
+                                ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedFilterTags.add(tag);
+                              } else {
+                                _selectedFilterTags.remove(tag);
+                              }
+                              list.currentState?.doFiltering(_filtered);
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ),
+              ],
             ),
 
           // Video List
