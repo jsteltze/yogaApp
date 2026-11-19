@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:js_flutter/components/app_layout.dart';
 import 'package:js_flutter/components/floating_action_button.dart';
 import 'package:js_flutter/components/list.dart';
@@ -10,6 +9,7 @@ import 'package:js_flutter/components/view_header.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:js_flutter/utils/first_time.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_card.dart';
