@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:js_flutter/components/badge.dart';
 import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/datetimex.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yoga_app/video.dart';
 
 class VideoCard extends StatelessWidget {

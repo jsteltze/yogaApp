@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:yoga_app/video.dart';
 

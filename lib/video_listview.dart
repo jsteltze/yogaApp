@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:js_flutter/components/list_view_scroll_indicator.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_card.dart';
 

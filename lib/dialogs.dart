@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 import 'package:js_flutter/components/badge.dart';
 import 'package:js_flutter/components/info_panel.dart';
 import 'package:js_flutter/components/info_table_row.dart';
@@ -12,6 +11,7 @@ import 'package:js_flutter/utils/datetimex.dart';
 import 'package:js_flutter/utils/dialog_utils.dart';
 import 'package:js_flutter/utils/package_info_global.dart';
 import 'package:js_flutter/utils/snackbar_utils.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yoga_app/generated/app_build_timestamp.g.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_card.dart';
