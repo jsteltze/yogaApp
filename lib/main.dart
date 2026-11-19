@@ -278,9 +278,32 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           horizontal: 16,
                           vertical: 12,
                         ),
-                        child: Text(
-                          'Your Yoga Videos (${_currentlyListed.length})',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        child: Row(
+                          spacing: 10,
+                          children: [
+                            Text(
+                              'YOUR YOGA VIDEOS:',
+                              style: Theme.of(context).textTheme.titleMedium!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  ),
+                            ),
+                            MyBadge(
+                              _filtered.length.toString(),
+                              icon: Icon(
+                                _selectedFilterTags.isEmpty
+                                    ? null
+                                    : Icons.filter_alt_outlined,
+                                applyTextScaling: true,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.6),
+                              ),
+                              variant: .outline,
+                            ),
+                          ],
                         ),
                       ),
                       if (_selectedFilterTags.isNotEmpty)
