@@ -129,7 +129,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     _controller?.close();
     _controller = YoutubePlayerController.fromVideoId(
       videoId: video.videoId,
-      autoPlay: false,
+      autoPlay: true,
       params: const YoutubePlayerParams(
         showControls: true,
         showFullscreenButton: true,
