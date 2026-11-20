@@ -209,11 +209,14 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
               Row(
                 spacing: 10,
                 children: [
-                  Text(
-                    'YOUR YOGA VIDEOS:',
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: .normal,
+                  Container(
+                    padding: .only(top: 3),
+                    child: Text(
+                      'YOUR YOGA VIDEOS:',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: .normal,
+                      ),
                     ),
                   ),
                   MyBadge(
