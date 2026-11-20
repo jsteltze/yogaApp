@@ -106,9 +106,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
     super.dispose();
   }
 
-  void _deleteVideo(YogaVideo video) {
-    _database.videos.remove(video);
-
+  void _deleteVideo(YogaVideo video, {DismissDirection? dismiss}) {
     if (_currentVideo?.id == video.id) {
       setState(() {
         _controller?.close();
@@ -116,8 +114,13 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
         _currentVideo = null;
       });
     }
-    _database.saveData();
-    list.currentState?.remove(video);
+
+    setState(() {
+      _database.videos.remove(video);
+      _database.saveData();
+    });
+
+    list.currentState?.remove(video, dismiss: dismiss);
   }
 
   @override
@@ -315,6 +318,8 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       onDelete: (_) => _deleteVideo(video),
                       onTap: () => _playVideo(video),
                     ),
+                    onDismissed: (video, dismissDirection) =>
+                        _deleteVideo(video, dismiss: dismissDirection),
                     noDataTile: noDataFiltered,
                   ),
           ),
