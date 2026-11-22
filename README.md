@@ -15,5 +15,4 @@ This project is a Flutter application written in Dart.
 ## TODO
 
 - Sortier-Funktion
-- Componente erstellen: FilterableList mit Size-Animation wenn Items verschwinden ->
-  siehe https://api.flutter.dev/flutter/widgets/AnimatedList-class.html
+- Streak Idee

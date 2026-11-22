@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:js_flutter/components/badge.dart';
+import 'package:js_flutter/components/card.dart';
 import 'package:js_flutter/components/popup_menu.dart';
 import 'package:js_flutter/icons.dart';
 import 'package:js_flutter/utils/datetimex.dart';
@@ -40,15 +41,8 @@ class VideoCard extends StatelessWidget {
           );
   }
 
-  Widget buildItem(BuildContext context, List<String> tags) => Card(
-    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-    elevation: 2,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: isPlaying
-          ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
-          : .none,
-    ),
+  Widget buildItem(BuildContext context, List<String> tags) => MyCard(
+    isHighlighted: isPlaying,
     child: ListTile(
       contentPadding: const EdgeInsets.only(left: 8),
       leading: ClipRRect(
