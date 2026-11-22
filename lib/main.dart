@@ -227,7 +227,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                           : Icons.filter_alt_outlined,
                       applyTextScaling: true,
                       size: 18,
-                      color: Theme.of(context).colorScheme.primary
+                      color: Theme.of(context).colorScheme.onPrimary
                           .withValues(alpha: 0.6),
                     ),
                     variant: .primary,
@@ -312,17 +312,22 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                       animation: animation,
                       video: video,
                       isPlaying: _currentVideo?.id == video.id,
-                      onEdit: (_) => showVideoDialog(
+                      onEdit: (_, {item}) => showVideoDialog(
                         context,
                         _database,
                         _onEdited,
                         video: video,
                       ),
-                      onDelete: (_) => _deleteVideo(video),
+                      onDelete: (_, {item}) => _deleteVideo(video),
                       onTap: () => _playVideo(video),
                     ),
-                    onDismissed: (video, dismissDirection) =>
-                        _deleteVideo(video, dismiss: dismissDirection),
+                    onDismissedPrimary: DismissAction(
+                      title: 'delete',
+                      isDestructive: true,
+                      icon: deleteIcon,
+                      onDismissed: (item) =>
+                          _deleteVideo(item, dismiss: .startToEnd),
+                    ),
                     noDataTile: noDataFiltered,
                   ),
           ),
