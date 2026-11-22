@@ -14,7 +14,7 @@ import 'package:material_ui/material_ui.dart' hide DismissAction;
 import 'package:yoga_app/database.dart';
 import 'package:yoga_app/video.dart';
 import 'package:yoga_app/video_card.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import 'dialogs.dart';
 import 'intent_handler.dart';

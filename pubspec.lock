@@ -689,38 +689,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
-  webview_flutter:
-    dependency: transitive
-    description:
-      name: webview_flutter
-      sha256: d53e1ccf5516f25017e3c9d44c39034db352d20fa34fe200674270242c2c5111
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.14.1"
-  webview_flutter_android:
-    dependency: transitive
-    description:
-      name: webview_flutter_android
-      sha256: "4de8b3d1ff4ebe1bdb42e68a5e4f809194a3cb0117a8f495f590004f00da3964"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.14.1"
-  webview_flutter_platform_interface:
-    dependency: transitive
-    description:
-      name: webview_flutter_platform_interface
-      sha256: "1221c1b12f5278791042f2ec2841743784cf25c5a644e23d6680e5d718824f04"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.15.1"
-  webview_flutter_wkwebview:
-    dependency: transitive
-    description:
-      name: webview_flutter_wkwebview
-      sha256: acac45e0a8d7beb1d0805521f44842f406c46eb5a69410f53d935e3c62138afc
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.27.2"
   win32:
     dependency: transitive
     description:
@@ -745,30 +713,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.4"
+  youtube_player:
+    dependency: transitive
+    description:
+      name: youtube_player
+      sha256: e98356b1b55fe6795c0fc460ad71c821b981e6887825e8e3f8754181b652b1cd
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.3"
+  youtube_player_android:
+    dependency: transitive
+    description:
+      name: youtube_player_android
+      sha256: fbeccc363e0dae29b5839afb1df48d436e69b3e8cff1cfbd32d529c7bf861d26
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
+  youtube_player_darwin:
+    dependency: transitive
+    description:
+      name: youtube_player_darwin
+      sha256: "0f239aea0f7d127d3619a533f986ef368b71fc3f1116ecd6941547e09fa29b2e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.3"
   youtube_player_flutter:
     dependency: "direct main"
     description:
       name: youtube_player_flutter
-      sha256: "57b1de176bb239d40ef76b0fa73e5f3a5a27b5e19448a6e1a35eec6a729a6e42"
+      sha256: "996077ffc9422e2ca8999c39338ec7dff187bdfec5ce1fa3ccec6381e0ad07d3"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.2"
-  youtube_player_iframe:
-    dependency: "direct main"
-    description:
-      name: youtube_player_iframe
-      sha256: "53336f4e5464f77add7ca6dd433bc82b519332814159b1e22a27849c22bfc087"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.3"
-  youtube_player_iframe_web:
+    version: "11.0.0"
+  youtube_player_html:
     dependency: transitive
     description:
-      name: youtube_player_iframe_web
-      sha256: d0c2b6b0a24fb27bc229b9e7886a55c93d102cb2516062b08570f1a4922f9568
+      name: youtube_player_html
+      sha256: c5756f5a69e14dc169ee3ef3e47d8a7277801649d9ef2c93f44af4344c3b94c0
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.4"
+    version: "0.1.3"
+  youtube_player_platform_interface:
+    dependency: transitive
+    description:
+      name: youtube_player_platform_interface
+      sha256: ab9e85a9bb367ebb5d9701e962f117aa3affd29a59339bc99c691e13e606276e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.3"
 sdks:
   dart: ">=3.14.0 <4.0.0"
-  flutter: ">=3.47.0"
+  flutter: ">=3.50.0"
