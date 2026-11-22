@@ -65,6 +65,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
 
   void _onAddedNew(YogaVideo video) {
     list.currentState?.insert(video);
+    setState(() {});
   }
 
   void _onEdited(YogaVideo video) {
@@ -115,12 +116,11 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       });
     }
 
+    list.currentState?.remove(video, dismiss: dismiss);
     setState(() {
       _database.videos.remove(video);
       _database.saveData();
     });
-
-    list.currentState?.remove(video, dismiss: dismiss);
   }
 
   @override
