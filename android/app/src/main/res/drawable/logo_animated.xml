@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="128dp"
+            android:height="128dp"
+            android:viewportWidth="512"
+            android:viewportHeight="512">
+
+            <!-- ================= LINKE HÄLFTE (Helleres Violett) ================= -->
+            <group android:name="left_half_clip_group">
+                <clip-path android:pathData="M 0,0 L 256,0 L 256,512 L 0,512 Z" />
+
+                <!-- Kopf -->
+                <path
+                    android:fillColor="#B794F6"
+                    android:pathData="M 256,83 A 31,31 0 1,1 256,145 A 31,31 0 1,1 256,83 Z" />
+
+                <!-- Torso & Standbein -->
+                <path
+                    android:fillColor="#B794F6"
+                    android:pathData="M 220,165 L 292,165 L 284,258 C 283,265 278,268 273,268 L 270,400 C 270,407 265,412 258,412 L 254,412 C 247,412 242,407 242,400 L 239,268 C 234,268 229,265 228,258 Z" />
+
+                <!-- Linker Arm (animiert um Schulterpunkt 231, 172) -->
+                <group
+                    android:name="arm_left"
+                    android:pivotX="231"
+                    android:pivotY="172"
+                    android:rotation="-125">
+                    <path
+                        android:pathData="M 256,54 L 184,116 L 231,172"
+                        android:strokeWidth="26"
+                        android:strokeColor="#B794F6"
+                        android:strokeLineCap="round"
+                        android:strokeLineJoin="round" />
+                </group>
+
+                <!-- Yoga-Matte / Podest -->
+                <path
+                    android:fillColor="#B794F6"
+                    android:pathData="M 145,433 C 145,422 155,414 168,414 L 344,414 C 357,414 367,422 367,433 Z" />
+                <path
+                    android:fillColor="#B794F6"
+                    android:pathData="M 148,433 L 364,433 A 10,10 0 0,1 374,443 L 374,451 A 10,10 0 0,1 364,461 L 148,461 A 10,10 0 0,1 138,451 L 138,443 A 10,10 0 0,1 148,433 Z" />
+            </group>
+
+            <!-- ================= RECHTE HÄLFTE (Dunkleres Violett) ================= -->
+            <group android:name="right_half_clip_group">
+                <clip-path android:pathData="M 256,0 L 512,0 L 512,512 L 256,512 Z" />
+
+                <!-- Angewickeltes Bein (hierarchisch: Hüfte 272,268 -> Knie 345,314) -->
+                <group
+                    android:name="thigh_right"
+                    android:pivotX="272"
+                    android:pivotY="268"
+                    android:rotation="58">
+                    <!-- Oberschenkel -->
+                    <path
+                        android:pathData="M 272,268 L 345,314"
+                        android:strokeWidth="32"
+                        android:strokeColor="#8B5CF6"
+                        android:strokeLineCap="round" />
+
+                    <!-- Unterschenkel -->
+                    <group
+                        android:name="calf_right"
+                        android:pivotX="345"
+                        android:pivotY="314"
+                        android:rotation="-118">
+                        <path
+                            android:pathData="M 345,314 L 265,356"
+                            android:strokeWidth="32"
+                            android:strokeColor="#8B5CF6"
+                            android:strokeLineCap="round" />
+                    </group>
+                </group>
+
+                <!-- Kopf -->
+                <path
+                    android:fillColor="#9F7AEA"
+                    android:pathData="M 256,83 A 31,31 0 1,1 256,145 A 31,31 0 1,1 256,83 Z" />
+
+                <!-- Torso & Standbein -->
+                <path
+                    android:fillColor="#9F7AEA"
+                    android:pathData="M 220,165 L 292,165 L 284,258 C 283,265 278,268 273,268 L 270,400 C 270,407 265,412 258,412 L 254,412 C 247,412 242,407 242,400 L 239,268 C 234,268 229,265 228,258 Z" />
+
+                <!-- Rechter Arm (animiert um Schulterpunkt 281, 172) -->
+                <group
+                    android:name="arm_right"
+                    android:pivotX="281"
+                    android:pivotY="172"
+                    android:rotation="125">
+                    <path
+                        android:pathData="M 256,54 L 328,116 L 281,172"
+                        android:strokeWidth="26"
+                        android:strokeColor="#8B5CF6"
+                        android:strokeLineCap="round"
+                        android:strokeLineJoin="round" />
+                </group>
+
+                <!-- Yoga-Matte / Podest -->
+                <path
+                    android:fillColor="#9F7AEA"
+                    android:pathData="M 145,433 C 145,422 155,414 168,414 L 344,414 C 357,414 367,422 367,433 Z" />
+                <path
+                    android:fillColor="#9F7AEA"
+                    android:pathData="M 148,433 L 364,433 A 10,10 0 0,1 374,443 L 374,451 A 10,10 0 0,1 364,461 L 148,461 A 10,10 0 0,1 138,451 L 138,443 A 10,10 0 0,1 148,433 Z" />
+            </group>
+
+        </vector>
+    </aapt:attr>
+
+    <!-- ================= ANIMATIONEN ================= -->
+
+    <!-- Linker Arm: Hebt sich von -125° auf 0° -->
+    <target android:name="arm_left">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="rotation"
+                android:startOffset="400"
+                android:valueFrom="-125"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+
+    <!-- Rechter Arm: Hebt sich von 125° auf 0° -->
+    <target android:name="arm_right">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="rotation"
+                android:startOffset="400"
+                android:valueFrom="125"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+
+    <!-- Rechter Oberschenkel: Klappt von 58° auf 0° -->
+    <target android:name="thigh_right">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="rotation"
+                android:startOffset="400"
+                android:valueFrom="58"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+
+    <!-- Rechter Unterschenkel: Winkelt sich von -118° auf 0° an -->
+    <target android:name="calf_right">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="1600"
+                android:interpolator="@android:interpolator/fast_out_slow_in"
+                android:propertyName="rotation"
+                android:startOffset="400"
+                android:valueFrom="-118"
+                android:valueTo="0"
+                android:valueType="floatType" />
+        </aapt:attr>
+    </target>
+
+</animated-vector>
