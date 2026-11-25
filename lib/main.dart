@@ -205,7 +205,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           // Video List Header & Count
           if (_database.videos.isNotEmpty)
             ViewHeader(
-              padding: EdgeInsets.all(0),
               Row(
                 spacing: 10,
                 children: [
