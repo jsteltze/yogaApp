@@ -16,3 +16,4 @@ This project is a Flutter application written in Dart.
 
 - Sortier-Funktion
 - Streak Idee
+- Schickes animiertes SVG

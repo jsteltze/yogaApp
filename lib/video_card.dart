@@ -15,13 +15,11 @@ class VideoCard extends StatelessWidget {
   final Function(void Function(void Function())?)? onEdit;
   final Function(void Function(void Function())?)? onDelete;
   final VoidCallback? onTap;
-  final Animation<double>? animation;
 
   const VideoCard({
     super.key,
     required this.video,
     this.isPlaying = false,
-    this.animation,
     this.onEdit,
     this.onDelete,
     this.onTap,
@@ -32,13 +30,7 @@ class VideoCard extends StatelessWidget {
     final tags = video.tags;
     tags.sort();
 
-    return animation == null
-        ? buildItem(context, tags)
-        : SizeTransition(
-            key: ValueKey(video.thumbnailBase64),
-            sizeFactor: animation!,
-            child: buildItem(context, tags),
-          );
+    return buildItem(context, tags);
   }
 
   Widget buildItem(BuildContext context, List<String> tags) => MyCard(

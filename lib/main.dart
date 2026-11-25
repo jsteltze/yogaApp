@@ -307,8 +307,7 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
                 : MyList<YogaVideo>(
                     key: list,
                     initialItems: _database.videos,
-                    itemBuilder: (video, animation) => VideoCard(
-                      animation: animation,
+                    itemBuilder: (video) => VideoCard(
                       video: video,
                       isPlaying: _currentVideo?.id == video.id,
                       onEdit: (_, {item}) => showVideoDialog(
