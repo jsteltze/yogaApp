@@ -56,7 +56,6 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
       checkFirstTime(
         () => showWelcomeDialog(
           context,
-          Icons.video_collection_outlined,
           'Thank you for using the Yoga Video Manager App!\n\nA simple video manager for Yoga videos on Android.',
         ),
       );
