@@ -204,36 +204,23 @@ class _YogaVideoScreenState extends State<YogaVideoScreen> {
           // Video List Header & Count
           if (_database.videos.isNotEmpty)
             ViewHeader(
-              Row(
-                spacing: 10,
-                children: [
-                  Container(
-                    padding: .only(top: 3),
-                    child: Text(
-                      'YOUR YOGA VIDEOS:',
-                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: .normal,
-                      ),
-                    ),
+              headerTitle: 'YOUR YOGA VIDEOS:',
+              headerWidgets: [
+                MyBadge(
+                  _filtered.length.toString(),
+                  icon: Icon(
+                    _selectedFilterTags.isEmpty
+                        ? null
+                        : Icons.filter_alt_outlined,
+                    applyTextScaling: true,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onPrimary
+                        .withValues(alpha: 0.6),
                   ),
-                  MyBadge(
-                    _filtered.length.toString(),
-                    icon: Icon(
-                      _selectedFilterTags.isEmpty
-                          ? null
-                          : Icons.filter_alt_outlined,
-                      applyTextScaling: true,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.onPrimary
-                          .withValues(alpha: 0.6),
-                    ),
-                    variant: .primary,
-                  ),
-                ],
-              ),
-              extension: [
-                Divider(),
+                  variant: .primary,
+                ),
+              ],
+              extensionWidgets: [
                 Padding(
                   padding: .symmetric(horizontal: 15),
                   child: SizedBox(
